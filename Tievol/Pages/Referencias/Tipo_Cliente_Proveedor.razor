@@ -1,0 +1,237 @@
+﻿@page "/Referencias/Tipo_ClienteProveedor"
+
+@inject TipoClienteProveedorServices srvTClienteProveedor
+@inject EstadosServices srvEstados
+
+<TelerikGrid Data=@LstTClienteProveedor EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10 Resizable="true"
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Tipo_cliente_proveedor))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Tipo_cliente_proveedor))" />
+        </GridCommandColumn>
+        
+        <GridColumn Field=@nameof(Tipo_cliente_proveedor.N_Tipo_Cliente_Proveedor) Title="Nombre" />
+        <GridColumn Field=@nameof(Tipo_cliente_proveedor.Estado) Title="Estado" Sortable="false">
+            <Template>
+                @( (context as Tipo_cliente_proveedor).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedTClienteProveedor" OnValidSubmit="@OnSave">
+            @*Modal Tipo Cliente Proveedor*@
+            <div class="card" style="width: 500px; height: 450px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.N_Tipo_Cliente_Proveedor " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.N_Tipo_Cliente_Proveedor)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            @*Estado*@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstado" @bind-Value="SelectedTClienteProveedor.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal Tipo Cliente Proveedor*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    
+    public List<Tipo_cliente_proveedor> LstTClienteProveedor { get; set; }
+    public List<Estado> LstEstado { get; set; }
+    
+    public string Accion { get; set; }
+    public Tipo_cliente_proveedor SelectedTClienteProveedor { get; set; }
+
+    
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+
+    public bool ShowWindow { get; set; } = false;
+
+    public TelerikNotification Notification { get; set; }
+
+    
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+        LstEstado = await srvEstados.GetEstados();
+        LstTClienteProveedor = await srvTClienteProveedor.GetTipoClienteProveedor();
+    }
+    
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+    }
+    
+    private void OnClick(string cAccion, Tipo_cliente_proveedor tipo_ClienteProveedor)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+
+        if (cAccion == "Add")
+        {   
+            SelectedTClienteProveedor = new Tipo_cliente_proveedor()
+            {
+                ID_Tipo_Cliente_Proveedor = 0,
+                N_Tipo_Cliente_Proveedor = string.Empty,
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado = string.Empty
+                }
+
+            };
+
+            TituloWindow = "Agregar Tipo de Cliente o Proveedor";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {   
+            SelectedTClienteProveedor = tipo_ClienteProveedor;
+
+            
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Tipo de Cliente o Proveedor";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Tipo de Cliente o Proveedor";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+        
+        StateHasChanged();
+    }
+    
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstTClienteProveedor.Exists(tcp => tcp.N_Tipo_Cliente_Proveedor == SelectedTClienteProveedor.N_Tipo_Cliente_Proveedor))
+            {
+                
+                return;
+            }
+
+            var response = await srvTClienteProveedor.CreateAsync(SelectedTClienteProveedor);
+            if (response.IsSuccess)
+            {
+                LstTClienteProveedor.Add(response.Result);
+                
+            }
+            else
+            {
+                
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvTClienteProveedor.UpdateAsync(SelectedTClienteProveedor);
+            if (response.IsSuccess)
+            {
+                LstTClienteProveedor.Add(response.Result);
+                var posicion = LstTClienteProveedor.FindIndex(tcp => tcp.ID_Tipo_Cliente_Proveedor == SelectedTClienteProveedor.ID_Tipo_Cliente_Proveedor);
+                if (posicion == -1)
+                {
+                    
+                }
+                else
+                {
+                    LstTClienteProveedor[posicion] = SelectedTClienteProveedor;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Los datos se almacenaron correctamente...",
+                        ThemeColor = "primary",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+               
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvTClienteProveedor.DeleteAsync(SelectedTClienteProveedor);
+            if (response.IsSuccess)
+            {
+                LstTClienteProveedor = await srvTClienteProveedor.GetTipoClienteProveedor();
+                
+            }
+            else
+            {
+               
+            }
+        }
+
+        
+        LstTClienteProveedor = await srvTClienteProveedor.GetTipoClienteProveedor();
+
+        StateHasChanged();
+    }
+}

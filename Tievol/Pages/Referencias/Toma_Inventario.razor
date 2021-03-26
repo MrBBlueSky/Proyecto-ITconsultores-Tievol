@@ -1,0 +1,385 @@
+﻿@page "/Referencias/Toma_Inventario"
+
+
+@inject EstadosServices  srvEstados
+@inject TomaInventarioServices  srvTomaInventarios
+@inject ProductoServices  srvProductos
+@inject NavigationManager NavigationManager
+
+
+
+<TelerikGrid Data=@LstTomaInventarios EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10
+             SelectionMode="GridSelectionMode.Single">
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton Icon="edit" OnClick="@((args) => OnClick("Upd", args.Item as Toma_inventario))" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Toma_inventario))" />
+            @*<GridCommandButton Icon="more-horizontal" OnClick="@((args) => OnClick("More", args.Item as Toma_inventario))" />*@
+        </GridCommandColumn>
+
+        @*<GridColumn Field=@nameof(Toma_inventario.ID_TomaInventario) Title="ID Inventario" Width="200px" />*@
+        <GridColumn Field=@nameof(Toma_inventario.N_funcionario) Title="Nombre Funcionario" Width="250px" />
+        <GridColumn Field=@nameof(Toma_inventario.Fecha_Creacion) Title="Fecha de Inventario" Width="150px" />
+        <GridColumn Field=@nameof(Toma_inventario.Producto) Title="Producto">
+            <Template>
+                @((context as Toma_inventario).Producto.N_Producto)
+            </Template>
+        </GridColumn>
+        <GridColumn Field=@nameof(Toma_inventario.StockIngresado) Title="Ingresado" Width="200px" />
+        <GridColumn Field=@nameof(Toma_inventario.StockActual) Title="Fecha de Ingreso" Width="150px" />
+        <GridColumn Field=@nameof(Toma_inventario.StockSolicitado) Title="Stock Ingresado" Width="200px" />
+
+
+
+        <GridColumn Field=@nameof(Toma_inventario.Estado) Title="Estado">
+            <Template>
+                @((context as Toma_inventario).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedTomaInventarios" OnValidSubmit="@OnSave">
+            @*Modal para Toma Inventario*@
+
+            <div class="card" style="width: 500px; height: 700px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre Funcionario*@
+                            <label class="k-label">Nombre de Funcionario</label>
+                            <TelerikTextBox @bind-Value="SelectedTomaInventarios.N_funcionario" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTomaInventarios.N_funcionario)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* StockIngresado *@
+                            <label class="k-label">Cantidad Ingresada </label>
+                            <TelerikNumericTextBox Arrows="false" @bind-Value="SelectedTomaInventarios.StockIngresado" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTomaInventarios.StockIngresado)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* StockActual *@
+                            <label class="k-label">Cantidad Actual </label>
+                            <TelerikNumericTextBox Arrows="false" @bind-Value="SelectedTomaInventarios.StockActual" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTomaInventarios.StockActual)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* StockSolicitado *@
+                            <label class="k-label">Cantidad Solicitado </label>
+                            <TelerikNumericTextBox Arrows="false" @bind-Value="SelectedTomaInventarios.StockSolicitado" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTomaInventarios.StockSolicitado)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Estado *@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstados" @bind-Value="SelectedTomaInventarios.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                             Producto 
+                            <label class="k-label">Producto</label>
+                            <TelerikComboBox Data="@LstProductos" @bind-Value="SelectedTomaInventarios.Producto.ID_Producto" Width="100%"
+                                             TextField="N_Producto" ValueField="ID_Producto"
+                                             Placeholder="Seleccione un Producto" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-row">
+                    <ValidationSummary />
+                </div>
+
+
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+    public DateTime Min = new DateTime(1990, 1, 1, 8, 15, 0);
+    public DateTime Max = new DateTime(2025, 1, 1, 19, 30, 45);
+    public List<Toma_inventario> LstTomaInventarios { get; set; }
+    public List<Data.Entities.Producto> LstProductos { get; set; }
+
+    public Toma_inventario SelectedTomaInventarios { get; set; }
+
+    public List<Data.Entities.Estado> LstEstados { get; set; }
+
+    Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+    public string Accion { get; set; }
+
+
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+
+    public bool ShowWindow { get; set; } = false;
+
+    private int CurrentValue { get; set; }
+    public TelerikNotification Notification { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        LstTomaInventarios = await srvTomaInventarios.GetToma_inventario();
+        LstProductos = await srvProductos.GetProductos();
+        LstEstados = await srvEstados.GetEstados();
+    }
+
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+        Task.Delay(500);
+        StateHasChanged();
+
+    }
+
+    private void OnClick(string cAccion, Toma_inventario tomaInventario)
+    {
+        SelectedTomaInventarios = tomaInventario;
+
+
+            ShowWindow = true;
+            Accion = cAccion;
+
+
+            if (cAccion == "Add")
+            {
+                SelectedTomaInventarios = new Data.Entities.Toma_inventario()
+                { 
+                    ID_TomaInventario = 0,
+                    N_funcionario = string.Empty,
+                    StockIngresado = 0,
+                    StockActual = 0,
+                    StockSolicitado = 0,
+
+                    Producto = new Data.Entities.Producto()
+                    {
+                        ID_Producto= 0,
+                        N_Producto = string.Empty,
+                        Descripcion = string.Empty,
+                        Observaciones = string.Empty,
+                        Codigo_Barra = 0,
+                        Codigo_Interno = 0,
+                        Codigo_Parte = string.Empty,
+                        Codigo_Proveedor = string.Empty,
+                        Precio_Venta = 0,
+                        Precio_Web = 0,
+                        Valor_Flete = 0,
+                        Valor_Compra = 0,
+                        Valor_Costo = 0,
+                        Valor_Margen = 0,
+                        Valor_Descuento = 0,
+                    },
+
+                    Estado = new Estado()
+                    {
+                        ID_Estado = 0,
+                        N_Estado = string.Empty
+
+                    }
+                };
+
+                TituloWindow = "Agregar Producto";
+                TituloButton = "Agregar";
+                IconButton = "add";
+
+            }
+            else
+            {
+
+                SelectedTomaInventarios = tomaInventario;
+
+
+                if (Accion == "Upd")
+                {
+                    TituloWindow = "Actualizar Producto";
+                    TituloButton = "Guardar";
+                    IconButton = "save";
+
+                }
+
+                else
+                {
+                    TituloWindow = "Eliminar Producto";
+                    TituloButton = "Eliminar";
+                    IconButton = "delete";
+
+                }
+            }
+
+
+            StateHasChanged();
+        
+    }
+    private async Task OnSave()
+    {
+
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstTomaInventarios.Exists(p => p.ID_TomaInventario == SelectedTomaInventarios.ID_TomaInventario))
+            {
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "El producto ya se encuentra en la lista...",
+                    ThemeColor = "warning",
+                    CloseAfter = 0
+                });
+            }
+
+            var response = await srvTomaInventarios.CreateAsync(SelectedTomaInventarios);
+
+            if (response.IsSuccess)
+            {
+                LstTomaInventarios.Add(response.Result);
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se agrego una Toma de Inventario correctamente",
+                    ThemeColor = "success",
+                    ShowIcon = true
+                });
+            }  
+            else
+            {
+                if (response.Message.Contains("Se debe asignar un Estado"))
+                {
+
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = response.Message,
+                        ThemeColor = "error",
+                        CloseAfter = 0
+                    });
+                }
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvTomaInventarios.UpdateAsync(SelectedTomaInventarios);
+            if (response.IsSuccess)
+            {
+
+                LstTomaInventarios.Add(response.Result);
+                var posicion = LstTomaInventarios.FindIndex(p => p.ID_TomaInventario == SelectedTomaInventarios.ID_TomaInventario);
+                if (posicion == -1)
+                {
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Ocurrio un error inesperado",
+                        ThemeColor = "error",
+                        CloseAfter = 0
+                    });
+                }
+                else
+                {
+                    LstTomaInventarios[posicion] = SelectedTomaInventarios;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Se Actualizo la Toma de Inventario correctamente",
+                        ThemeColor = "info",
+                        ShowIcon = true
+                    });
+
+
+                }  
+            }
+            else
+            {
+                if (response.Message.Contains("Debe asignarle un Producto nuevo"))
+                {
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = response.Message,
+                        ThemeColor = "error",
+                        CloseAfter = 0
+                    });
+                }
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvTomaInventarios.DeleteAsync(SelectedTomaInventarios);
+            if (response.IsSuccess)
+            {
+                LstTomaInventarios = await srvTomaInventarios.GetToma_inventario();
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Elimino la Toma de Inventario correctamente",
+                    ThemeColor = "error",
+                    ShowIcon = true
+                });
+            }
+            else
+            {
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Ocurrio un error inesperado",
+                    ThemeColor = "error",
+                    CloseAfter = 0
+                });
+
+            }
+
+        }
+
+
+
+
+
+        LstTomaInventarios = await srvTomaInventarios.GetToma_inventario();
+
+
+        StateHasChanged();
+    }
+
+}

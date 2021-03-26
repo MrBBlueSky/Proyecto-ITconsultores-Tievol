@@ -1,0 +1,251 @@
+﻿@page "/Referencias/Comunas"
+
+@inject ComunasServices srvComunas
+@inject RegionesServices srvRegiones
+
+<TelerikGrid Data=@LstComunas EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10 Resizable="true"
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="70px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Comuna))" Icon="edit" />
+        </GridCommandColumn>
+        <GridColumn Field=@nameof(Comuna.ID_Comuna) Title="Identificador" Width="150px" />
+        <GridColumn Field=@nameof(Comuna.N_Comuna) Title="Descripción" />
+        <GridColumn Field=@nameof(Comuna.Region) Title="Región" Sortable="false">
+            <Template>
+                @( (context as Comuna).Region.N_Region)
+            </Template>
+        </GridColumn>
+
+
+        <GridCommandColumn Width="70px">
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Comuna))" />
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedComuna" OnValidSubmit="@OnSave">
+            <!-- Card -->
+            <div class="card" style="width: 500px; height: 450px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    <div class="row my-1">
+                        <div class="col">
+                            <!-- ID_Comuna -->
+                            <label class="k-label">Identificador</label>
+                            <TelerikNumericTextBox @bind-Value="SelectedComuna.ID_Comuna" Width="100%" @ref="IDInt" Enabled="false" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <!-- Nombre_Comuna -->
+                            <label class="k-label">Descripción</label>
+                            <TelerikTextBox @bind-Value="SelectedComuna.N_Comuna" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedComuna.N_Comuna)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <!-- ID_Region -->
+                            <label class="k-label">Region</label>
+                            <TelerikComboBox Data="@LstRegiones" @bind-Value="SelectedComuna.Region.ID_Region" Width="100%"
+                                             TextField="N_Region" ValueField="ID_Region"
+                                             Placeholder="Seleccione una Región..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <ValidationSummary />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            <!-- Card -->
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    //
+    public List<Comuna> LstComunas { get; set; }
+    public List<Region> LstRegiones { get; set; }
+
+    //
+    public string Accion { get; set; }
+    public Comuna SelectedComuna { get; set; }
+
+    //
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+
+    public bool ShowWindow { get; set; } = false;
+
+    public TelerikNotification Notification { get; set; }
+
+    // Referencias de tipo
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        LstComunas = await srvComunas.GetComunas();
+        LstRegiones = await srvRegiones.GetRegiones();
+    }
+    //
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+     
+    }
+    //
+    private void OnClick(string cAccion, Comuna comuna)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+
+        if (cAccion == "Add")
+        {   //
+            SelectedComuna = new Comuna()
+            {
+                ID_Comuna = 0,
+                N_Comuna = string.Empty,
+                Region = new Region()
+                {
+                    ID_Region = 0,
+                    N_Region = string.Empty
+                }
+
+            };
+
+            TituloWindow = "Agregar Comuna";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {   //
+            SelectedComuna = comuna;
+
+            //
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Comuna";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Comuna";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+        //
+        StateHasChanged();
+    }
+    //
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstComunas.Exists(co => co.N_Comuna == SelectedComuna.N_Comuna))
+            {
+                //toast.ShowWarning("La descripción ya se encuentra en la lista...", "ATENCION");
+                return;
+            }
+
+            var response = await srvComunas.CreateAsync(SelectedComuna);
+            if (response.IsSuccess)
+            {
+                LstComunas.Add(response.Result);
+                //toast.ShowSuccess("Los datos se almacenaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Upd")// Metodo comportamiento extraño
+        {
+
+            var response = await srvComunas.UpdateAsync(SelectedComuna);
+            if (response.IsSuccess)
+            {
+                LstComunas.Add(response.Result);
+                var posicion = LstComunas.FindIndex(co => co.ID_Comuna == SelectedComuna.ID_Comuna);
+                if (posicion == -1)
+                {
+                    //toast.ShowError("Se produjo un error inesperado...", "ERROR");
+                }
+                else
+                {
+                    LstComunas[posicion] = SelectedComuna;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Los datos se almacenaron correctamente...",
+                        ThemeColor = "primary",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvComunas.DeleteAsync(SelectedComuna);
+            if (response.IsSuccess)
+            {
+                LstComunas = await srvComunas.GetComunas();
+                //toast.ShowSuccess("Los datos se eliminaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        //
+        LstComunas = await srvComunas.GetComunas();
+
+
+        StateHasChanged();
+    }
+}

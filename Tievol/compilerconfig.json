@@ -1,0 +1,90 @@
+﻿[
+  {
+    "outputFile": "wwwroot/PlugIn/MDBootstrap/css/mdb-pro.css",
+    "inputFile": "Theme/PlugIn/MDBootstrap/scss/mdb-pro.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  },
+  {
+    "outputFile": "wwwroot/PlugIn/FontAwesome/css/all.css",
+    "inputFile": "Theme/PlugIn/FontAwesome/scss/all.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  },
+  {
+    "outputFile": "wwwroot/PlugIn/FontAwesome/css/fontawesome.css",
+    "inputFile": "Theme/PlugIn/FontAwesome/scss/fontawesome.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  },
+  {
+    "outputFile": "wwwroot/PlugIn/FontAwesome/css/brands.css",
+    "inputFile": "Theme/PlugIn/FontAwesome/scss/brands.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  },
+  {
+    "outputFile": "wwwroot/PlugIn/FontAwesome/css/regular.css",
+    "inputFile": "Theme/PlugIn/FontAwesome/scss/regular.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  },
+  {
+    "outputFile": "wwwroot/PlugIn/FontAwesome/css/solid.css",
+    "inputFile": "Theme/PlugIn/FontAwesome/scss/solid.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  },
+  {
+    "outputFile": "wwwroot/PlugIn/FontAwesome/scss/v4-shims.css",
+    "inputFile": "Theme/PlugIn/FontAwesome/scss/v4-shims.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  },
+  {
+    "outputFile": "wwwroot/css/site.css",
+    "inputFile": "Theme/site.scss",
+    "minify": {
+      "enabled": true
+    },
+    "options": {
+      "sourceMap": false,
+      "relativeUrls": false
+    }
+  }
+]

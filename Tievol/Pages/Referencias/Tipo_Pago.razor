@@ -1,0 +1,230 @@
+﻿@page "/Referencias/Tipo_Pago"
+
+@inject TipoPagoServices srvTPago
+@inject EstadosServices srvEstados
+
+<TelerikGrid Data=@LstTPago EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10 
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Tipo_pago))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Tipo_pago))" />
+        </GridCommandColumn>
+        @*<GridColumn Field=@nameof(Tipo_pago.ID_Tipo_Pago) Title="Identificador" Width="150px" />*@
+        <GridColumn Field=@nameof(Tipo_pago.N_Tipo_Pago) Title="Nombre" />
+        <GridColumn Field=@nameof(Tipo_pago.Estado) Title="Estado" Sortable="false">
+            <Template>
+                @( (context as Tipo_pago).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedTPago" OnValidSubmit="@OnSave">
+            @*Modal Tipo Pago*@
+            <div class="card" style="width: 500px; height: 450px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedTPago.N_Tipo_Pago " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTPago.N_Tipo_Pago)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            @*Estado*@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstado" @bind-Value="SelectedTPago.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal Tipo Pago*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    // Referencias de tipo
+    public List<Tipo_pago> LstTPago { get; set; }
+    public List<Estado> LstEstado { get; set; }
+    public string Accion { get; set; }
+    public Tipo_pago SelectedTPago { get; set; }
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+    public bool ShowWindow { get; set; } = false;
+    public TelerikNotification Notification { get; set; }
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+        LstEstado = await srvEstados.GetEstados();
+        LstTPago = await srvTPago.GetTipoPagos();
+    }
+    
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+    }
+    
+    private void OnClick(string cAccion, Tipo_pago tipo_pago)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+
+        if (cAccion == "Add")
+        {   
+            SelectedTPago = new Tipo_pago()
+            {
+                ID_Tipo_Pago = 0,
+                N_Tipo_Pago = string.Empty,
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado = string.Empty
+                }
+
+            };
+
+            TituloWindow = "Agregar Tipo de Pago";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {   
+            SelectedTPago = tipo_pago;
+
+            
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Tipo de pago";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Tipo de pago";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+        
+        StateHasChanged();
+    }
+    
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstTPago.Exists(td => td.N_Tipo_Pago == SelectedTPago.N_Tipo_Pago))
+            {
+                
+                return;
+            }
+
+            var response = await srvTPago.CreateAsync(SelectedTPago);
+            if (response.IsSuccess)
+            {
+                LstTPago.Add(response.Result);
+               
+            }
+            else
+            {
+               
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvTPago.UpdateAsync(SelectedTPago);
+            if (response.IsSuccess)
+            {
+                LstTPago.Add(response.Result);
+                var posicion = LstTPago.FindIndex(td => td.ID_Tipo_Pago == SelectedTPago.ID_Tipo_Pago);
+                if (posicion == -1)
+                {
+                    
+                }
+                else
+                {
+                    LstTPago[posicion] = SelectedTPago;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Los datos se almacenaron correctamente...",
+                        ThemeColor = "primary",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+                
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvTPago.DeleteAsync(SelectedTPago);
+            if (response.IsSuccess)
+            {
+                LstTPago = await srvTPago.GetTipoPagos();
+                
+            }
+            else
+            {
+                
+            }
+        }
+
+        
+        LstTPago = await srvTPago.GetTipoPagos();
+
+        StateHasChanged();
+    }
+}

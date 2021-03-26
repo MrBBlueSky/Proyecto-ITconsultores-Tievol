@@ -1,0 +1,262 @@
+﻿@page "/Referencias/Ubicaciones"
+
+@inject UbicacionesServices srvUbicaciones
+@inject BodegasServices srvBodegas
+@inject EstadosServices srvEstados 
+
+<TelerikGrid Data=@LstUbicacion EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10 
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@(() => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Ubicacion))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Ubicacion))" />
+        </GridCommandColumn>
+        @*<GridColumn Field=@nameof(Ubicacion.ID_Ubicacion) Title="Identificador" Width="150px" />*@
+        <GridColumn Field=@nameof(Ubicacion.N_Ubicacion) Title="Nombre" />
+        <GridColumn Field=@nameof(Ubicacion.Bodega) Title="Bodega" >
+        <Template>
+            @( (context as Ubicacion).Bodega.N_Bodega)
+        </Template>
+        </GridColumn>
+        <GridColumn Field=@nameof(Ubicacion.Estado) Title="Estado" Sortable="false">
+            <Template>
+                @( (context as Ubicacion).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedUbicacion" OnValidSubmit="@OnSave">
+            @*Modal Ubicaciones*@
+            <div class="card" style="width: 500px; height: 450px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    <!--<div class="row my-1">
+                <div class="col">-->
+                    @*Identificador*@
+                    <!--<label class="k-label">Identificador</label>
+                    <TelerikNumericTextBox @bind-Value="SelectedUbicacion.ID_Ubicacion" Width="100%" @ref="IDInt" Enabled="false" />
+                </div>
+            </div>-->
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedUbicacion.N_Ubicacion" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedUbicacion.N_Ubicacion)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            @*Bodega*@
+                            <label class="k-label">Bodega</label>
+                            <TelerikComboBox Data="@LstBodega" @bind-Value="SelectedUbicacion.Bodega.ID_Bodega" Width="100%"
+                                             TextField="N_Bodega" ValueField="ID_Bodega"
+                                             Placeholder="Seleccione una Bodega..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            @*Estado*@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstado" @bind-Value="SelectedUbicacion.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal Ubicaciones*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+
+    public List<Ubicacion> LstUbicacion { get; set; }
+    public List<Bodega> LstBodega { get; set; }
+    public List<Estado> LstEstado { get; set; }
+    public string Accion { get; set; }
+    public Ubicacion SelectedUbicacion { get; set; }
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+    public bool ShowWindow { get; set; } = false;
+    public TelerikNotification Notification { get; set; }
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        LstBodega = await srvBodegas.GetBodegas();
+        LstEstado = await srvEstados.GetEstados();
+        LstUbicacion = await srvUbicaciones.GetUbicaciones();
+    }
+
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+    }
+
+    private void OnClick(string cAccion, Ubicacion ubicacion)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+
+        if (cAccion == "Add")
+        {
+            SelectedUbicacion = new Ubicacion()
+            {
+                ID_Ubicacion = 0,
+                N_Ubicacion = string.Empty,
+                Bodega = new Bodega()
+                {
+                    ID_Bodega = 0,
+                    N_Bodega = string.Empty
+                },
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado =string.Empty
+                }
+
+            };
+
+            TituloWindow = "Agregar Ubicacion";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {
+            SelectedUbicacion = ubicacion;
+
+
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Ubicacion";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Ubicacion";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstUbicacion.Exists(ub => ub.N_Ubicacion== SelectedUbicacion.N_Ubicacion))
+            {
+                
+                return;
+            }
+
+            var response = await srvUbicaciones.CreateAsync(SelectedUbicacion);
+            if (response.IsSuccess)
+            {
+                LstUbicacion.Add(response.Result);
+               
+            }
+            else
+            {
+                
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvUbicaciones.UpdateAsync(SelectedUbicacion);
+            if (response.IsSuccess)
+            {
+                LstUbicacion.Add(response.Result);
+                var posicion = LstUbicacion.FindIndex(ub => ub.ID_Ubicacion == SelectedUbicacion.ID_Ubicacion);
+                if (posicion == -1)
+                {
+                    
+                }
+                else
+                {
+                    LstUbicacion[posicion] = SelectedUbicacion;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "La Ubicación se actualizo con éxito",
+                        ThemeColor = "primary",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+               
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvUbicaciones.DeleteAsync(SelectedUbicacion);
+            if (response.IsSuccess)
+            {
+                LstUbicacion = await srvUbicaciones.GetUbicaciones();
+
+               
+            }
+            else
+            {
+                
+            }
+        }
+
+
+        LstUbicacion = await srvUbicaciones.GetUbicaciones();
+
+
+        StateHasChanged();
+    }
+}

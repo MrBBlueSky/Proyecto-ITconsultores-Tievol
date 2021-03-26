@@ -1,0 +1,250 @@
+﻿@page "/Referencias/Unidades"
+
+@inject UnidadesServices srvUnidades
+@inject EstadosServices srvEstados
+
+<TelerikGrid Data=@LstUnidad EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10 Resizable="true"
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="70px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Unidad))" Icon="edit" />
+        </GridCommandColumn>
+        <GridColumn Field=@nameof(Unidad.ID_Unidad) Title="Identificador" Width="150px" />
+        <GridColumn Field=@nameof(Unidad.N_Unidad) Title="Descripción" />
+        <GridColumn Field=@nameof(Unidad.Estado) Title="Estado" Sortable="false">
+            <Template>
+                @( (context as Unidad).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+
+
+        <GridCommandColumn Width="70px">
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Unidad))" />
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedUnidad" OnValidSubmit="@OnSave">
+            <!-- Card -->
+            <div class="card" style="width: 500px; height: 450px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    <div class="row my-1">
+                        <div class="col">
+                            <!-- ID_Comuna -->
+                            <label class="k-label">Identificador</label>
+                            <TelerikNumericTextBox @bind-Value="SelectedUnidad.ID_Unidad" Width="100%" @ref="IDInt" Enabled="false" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <!-- Nombre_Comuna -->
+                            <label class="k-label">Descripción</label>
+                            <TelerikTextBox @bind-Value="SelectedUnidad.N_Unidad" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedUnidad.N_Unidad)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <!-- ID_Region -->
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstado" @bind-Value="SelectedUnidad.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione una Estado..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <ValidationSummary />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            <!-- Card -->
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    //
+    public List<Unidad> LstUnidad { get; set; }
+    public List<Estado> LstEstado { get; set; }
+    //
+    public string Accion { get; set; }
+    public Unidad SelectedUnidad { get; set; }
+
+    //
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+
+    public bool ShowWindow { get; set; } = false;
+
+    public TelerikNotification Notification { get; set; }
+
+    // Referencias de tipo
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        LstUnidad = await srvUnidades.GetUnidades();
+        LstEstado = await srvEstados.GetEstados();
+    }
+    //
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+    }
+    //
+    private void OnClick(string cAccion, Unidad unidad)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+
+        if (cAccion == "Add")
+        {   //
+            SelectedUnidad = new Unidad()
+            {
+                ID_Unidad = 0,
+                N_Unidad = string.Empty,
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado = string.Empty
+                }
+
+            };
+
+            TituloWindow = "Agregar Unidad";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {   //
+            SelectedUnidad = unidad;
+
+            //
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Unidad";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Unidad";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+        //
+        StateHasChanged();
+    }
+    //
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstUnidad.Exists(un => un.N_Unidad == SelectedUnidad.N_Unidad))
+            {
+                //toast.ShowWarning("La descripción ya se encuentra en la lista...", "ATENCION");
+                return;
+            }
+
+            var response = await srvUnidades.CreateAsync(SelectedUnidad);
+            if (response.IsSuccess)
+            {
+                LstUnidad.Add(response.Result);
+                //toast.ShowSuccess("Los datos se almacenaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Upd")// Metodo comportamiento extraño
+        {
+
+            var response = await srvUnidades.UpdateAsync(SelectedUnidad);
+            if (response.IsSuccess)
+            {
+                LstUnidad.Add(response.Result);
+                var posicion = LstUnidad.FindIndex(un => un.ID_Unidad == SelectedUnidad.ID_Unidad);
+                if (posicion == -1)
+                {
+                    //toast.ShowError("Se produjo un error inesperado...", "ERROR");
+                }
+                else
+                {
+                    LstUnidad[posicion] = SelectedUnidad;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Los datos se almacenaron correctamente...",
+                        ThemeColor = "primary",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvUnidades.DeleteAsync(SelectedUnidad);
+            if (response.IsSuccess)
+            {
+                LstUnidad = await srvUnidades.GetUnidades();
+                //toast.ShowSuccess("Los datos se eliminaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        //
+        LstUnidad = await srvUnidades.GetUnidades();
+
+
+        StateHasChanged();
+    }
+}

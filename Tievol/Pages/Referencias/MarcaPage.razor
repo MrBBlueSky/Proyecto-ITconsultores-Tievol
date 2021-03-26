@@ -1,0 +1,250 @@
+﻿@page "/Referencias/Marca"
+
+@inject MarcaServices srvMarca
+@inject EstadosServices srvEstados
+
+<TelerikGrid Data=@LstMarca EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Marca))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Marca))" />
+        </GridCommandColumn>
+        @*<GridColumn Field=@nameof(Marca.ID_Marca) Title="Identificador" Width="150px" />*@
+        <GridColumn Field=@nameof(Marca.N_Marca) Title="Nombre" />
+        <GridColumn Field=@nameof(Marca.Estado) Title="Estado">
+            <Template>
+                @( (context as Marca).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedMarca" OnValidSubmit="@OnSave">
+            @*Modal Marcas*@
+            <div class="card" style="width: 500px; height: 450px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    <!--<div class="row my-1">
+                <div class="col">-->
+                    @*Identificador*@
+                    <!--<label class="k-label">Identificador</label>
+                    <TelerikNumericTextBox @bind-Value="SelectedMarca.ID_Marca" Width="100%" @ref="IDInt" Enabled="false" />
+                </div>
+            </div>-->
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedMarca.N_Marca " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedMarca.N_Marca)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            @*Estado*@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstado" @bind-Value="SelectedMarca.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <ValidationSummary />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal Marcas*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    // Referencias de tipo
+    public List<Marca> LstMarca { get; set; }
+    public List<Estado> LstEstado { get; set; }
+    public string Accion { get; set; }
+    public Marca SelectedMarca { get; set; }
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+    public bool ShowWindow { get; set; } = false;
+    public TelerikNotification Notification { get; set; }
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        LstEstado = await srvEstados.GetEstados();
+        LstMarca = await srvMarca.GetMarca();
+    }
+
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+    }
+
+    private void OnClick(string cAccion, Marca tipo_Documento)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+
+        if (cAccion == "Add")
+        {
+            SelectedMarca = new Marca()
+            {
+                ID_Marca = 0,
+                N_Marca = string.Empty,
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado = string.Empty
+                }
+
+            };
+
+            TituloWindow = "Agregar Marca";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {
+            SelectedMarca = tipo_Documento;
+
+
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Marca";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Marca";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstMarca.Exists(td => td.N_Marca == SelectedMarca.N_Marca))
+            {
+                //"ATENCION"
+                return;
+            }
+
+            var response = await srvMarca.CreateAsync(SelectedMarca);
+            if (response.IsSuccess)
+            {
+                LstMarca.Add(response.Result);
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Agregó la Marca correctamente...",
+                    ThemeColor = "success",
+                    ShowIcon = true
+                });
+                //"ATENCION"
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvMarca.UpdateAsync(SelectedMarca);
+            if (response.IsSuccess)
+            {
+                LstMarca.Add(response.Result);
+                var posicion = LstMarca.FindIndex(td => td.ID_Marca == SelectedMarca.ID_Marca);
+                if (posicion == -1)
+                {
+                    //"ERROR"
+                }
+                else
+                {
+                    LstMarca[posicion] = SelectedMarca;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Se actualizo correctamente la Marca",
+                        ThemeColor = "info",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+                //"ERROR"
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvMarca.DeleteAsync(SelectedMarca);
+            if (response.IsSuccess)
+            {
+                LstMarca = await srvMarca.GetMarca();
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se eliminó correctamente la Marca",
+                    ThemeColor = "error",
+                    ShowIcon = true
+                });
+                //"ATENCION"
+            }
+            else
+            {
+                //"ERROR"
+            }
+        }
+
+
+        LstMarca = await srvMarca.GetMarca();
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,693 @@
+@page "/Referencias/Producto"
+
+
+@inject EstadosServices  srvEstados
+@inject TipoInventarioServices srvTInventario
+@inject TipoMaterialServices srvTMaterial
+@inject ProductoServices  srvProductos
+@inject TipoProductosServices  srvTProductos
+@inject TipoDescuentoServices srvDescuentos
+@inject UnidadesServices srvUnidades
+@inject MarcaServices srvMarcas
+@inject FamiliasServices srvFamilias
+@inject SubfamiliaServices srvSubfamilias
+@inject ClienteProveedorServices srvClientesProveedores
+@inject NavigationManager NavigationManager
+
+
+
+<TelerikGrid Data=@LstProductos EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10
+             SelectionMode="GridSelectionMode.Single">
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton Icon="edit" OnClick="@((args) => OnClick("Upd", args.Item as Data.Entities.Producto))" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Data.Entities.Producto))" />
+            <GridCommandButton Icon="more-horizontal" OnClick="@((args) => OnClick("More", args.Item as Data.Entities.Producto))" />
+        </GridCommandColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.Codigo_Barra) Title="Codigo de Barra" Width="150px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.N_Producto) Title="Nombre" Width="150px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Valor_Costo) Title="Valor Costo" Width="150px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Descripcion) Title="Descripcion" Width="200px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Observaciones) Title="Observaciones" Width="150px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Valor_Descuento) Title="Valor Descuento" Width="150px" />
+
+
+        @*
+        <GridColumn Field=@nameof(Data.Entities.Producto.ID_Producto) Title="ID Producto" Width="150px" /> editado
+        <GridColumn Field=@nameof(Data.Entities.Producto.Codigo_Interno) Title="Codigo Interno" Width="200px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Codigo_Parte) Title="Codigo Parte" Width="200px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Codigo_Proveedor) Title="Codigo Proveedor" Width="200px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Precio_Venta) Title="Precio de Venta" Width="250px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Precio_Web) Title="Precio Web" Width="250px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Valor_Compra) Title="Valor Compra" Width="250px" />
+
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.Valor_Flete) Title="Valor Flete" Width="250px" />
+        <GridColumn Field=@nameof(Data.Entities.Producto.Valor_Margen) Title="Valor Margen" Width="250px" />*@
+
+        @* FK *@
+        @*<GridColumn Field=@nameof(Data.Entities.Producto.TipoDescuento) Title="Tipo Descuento" >
+            <Template>
+                @((context as Data.Entities.Producto).TipoDescuento.N_Tipo_Descuento)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.Unidad) Title="Unidad">
+            <Template>
+                @((context as Data.Entities.Producto).Unidad.N_Unidad)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.Marca) Title="Marca">
+            <Template>
+                @((context as Data.Entities.Producto).Marca.N_Marca)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.Familia) Title="Familia">
+            <Template>
+                @((context as Data.Entities.Producto).Familia.N_Familia)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.SubFamilia) Title="Subfamilia">
+            <Template>
+                @((context as Data.Entities.Producto).SubFamilia.N_Subfamilia)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.TipoProducto) Title="Tipo producto">
+            <Template>
+                @((context as Data.Entities.Producto).TipoProducto.N_Tipo_Producto)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.TipoInventario) Title="Tipo inventario">
+            <Template>
+                @((context as Data.Entities.Producto).TipoInventario.N_Tipo_Inventario)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.TipoMaterial) Title="Tipo material">
+            <Template>
+                @((context as Data.Entities.Producto).TipoMaterial.N_Tipo_Material)
+            </Template>
+        </GridColumn>*@
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.ClienteProveedor) Title="ClienteProveedor" Width="100px">
+            <Template>
+                @((context as Data.Entities.Producto).ClienteProveedor.N_Cliente_Proveedor)
+            </Template>
+        </GridColumn>
+
+
+        <GridColumn Field=@nameof(Data.Entities.Producto.Estado) Title="Estado" Width="100px">
+            <Template>
+                @((context as Data.Entities.Producto).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedProducto" OnValidSubmit="@OnSave">
+            @*Modal para vista producto*@
+
+            <div class="card" style="width: 500px; height: 700px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                 
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre producto*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedProducto.N_Producto" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.N_Producto)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Descripción en el modal no lleva acento por probemas de telerik*@
+                            <label class="k-label">Descripcion</label>
+                            <TelerikTextBox @bind-Value="SelectedProducto.Descripcion" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Descripcion)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Observacion *@
+                            <label class="k-label">Observaciones</label>
+                            <TelerikTextBox @bind-Value="SelectedProducto.Observaciones" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Observaciones)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Codigo de Barra  *@
+                            <label class="k-label"> Codigo de Barra</label>
+                            <TelerikNumericTextBox Arrows="false" @bind-Value="@SelectedProducto.Codigo_Barra" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Codigo_Barra)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Codigo Interno *@
+                            <label class="k-label">Codigo Interno</label>
+                            <TelerikNumericTextBox Arrows="false" @bind-Value="@SelectedProducto.Codigo_Interno" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Codigo_Interno)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Codigo Parte *@
+                            <label class="k-label">Codigo Parte</label>
+                            <TelerikTextBox @bind-Value="SelectedProducto.Codigo_Parte" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Codigo_Parte)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Codigo Proveedor *@
+                            <label class="k-label">Codigo Proveedor </label>
+                            <TelerikTextBox @bind-Value="SelectedProducto.Codigo_Proveedor" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Codigo_Proveedor)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Precio de Venta *@
+                            <label class="k-label">Precio de Venta </label>
+                            <TelerikNumericTextBox Arrows="false" Format="C"  @bind-Value="SelectedProducto.Precio_Venta" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Precio_Venta)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Precio Web *@
+                            <label class="k-label">Precio Web </label>
+                            <TelerikNumericTextBox Arrows="false" Format="C"  @bind-Value="SelectedProducto.Precio_Web" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Precio_Web)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Valor de Compra *@
+                            <label class="k-label">Valor de Compra </label>
+                            <TelerikNumericTextBox Arrows="false" Format="C"  @bind-Value="SelectedProducto.Valor_Compra" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Valor_Compra)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Valor de Flete *@
+                            <label class="k-label">Valor de Flete </label>
+                            <TelerikNumericTextBox Arrows="false" Format="C"  @bind-Value="SelectedProducto.Valor_Flete" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Valor_Flete)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Valor de Costo *@
+                            <label class="k-label">Valor de Costo </label>
+                            <TelerikNumericTextBox Arrows="false" Enabled="false" Format="C"  @bind-Value="SelectedProducto.Valor_Costo" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Valor_Costo)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Valor Margen *@
+                            <label class="k-label">Valor Margen </label>
+                            <TelerikNumericTextBox Arrows="false" Format="C"  @bind-Value="SelectedProducto.Valor_Margen" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Valor_Margen)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Valor Descuento *@
+                            <label class="k-label">Valor Descuento </label>
+                            <TelerikNumericTextBox Arrows="false"   @bind-Value="SelectedProducto.Valor_Descuento" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedProducto.Valor_Descuento)" />
+                            
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Tipo Descuentos *@
+                            <label class="k-label">Tipo Descuentos</label>
+                            <TelerikComboBox Data="@LstTDescuentos" @bind-Value="SelectedProducto.TipoDescuento.ID_Tipo_Descuento" Width="100%"
+                                             TextField="N_Tipo_Descuento" ValueField="ID_Tipo_Descuento"
+                                             Placeholder="Seleccione un Tipo de Descuento" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Unidades *@
+                            <label class="k-label">Unidades</label>
+                            <TelerikComboBox Data="@LstUnidades" @bind-Value="SelectedProducto.Unidad.ID_Unidad" Width="100%"
+                                             TextField="N_Unidad" ValueField="ID_Unidad"
+                                             Placeholder="Seleccione una Unidad" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Marca *@
+                            <label class="k-label">Marca</label>
+                            <TelerikComboBox Data="@LstMarcas" @bind-Value="SelectedProducto.Marca.ID_Marca" Width="100%"
+                                             TextField="N_Marca" ValueField="ID_Marca"
+                                             Placeholder="Seleccione una Marca" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Familia *@
+                            <label class="k-label">Familia</label>
+                            <TelerikComboBox Data="@LstFamilias" @bind-Value="SelectedProducto.Familia.ID_Familia" Width="100%"
+                                             TextField="N_Familia" ValueField="ID_Familia"
+                                             Placeholder="Seleccione una Familia" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* SubFamilia *@
+                            <label class="k-label">SubFamilia</label>
+                            <TelerikComboBox Data="@LstSubfamilias" @bind-Value="SelectedProducto.SubFamilia.ID_Subfamilia" Width="100%"
+                                             TextField="N_Subfamilia" ValueField="ID_Subfamilia"
+                                             Placeholder="Seleccione una Familia" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Tipo de Producto *@
+                            <label class="k-label">Tipo de Producto</label>
+                            <TelerikComboBox Data="@LstTProductos" @bind-Value="SelectedProducto.TipoProducto.ID_Tipo_Producto" Width="100%"
+                                             TextField="N_Tipo_Producto" ValueField="ID_Tipo_Producto"
+                                             Placeholder="Seleccione un Tipo de Producto" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Tipo de Inventario *@
+                            <label class="k-label">Tipo de Inventario</label>
+                            <TelerikComboBox Data="@LstTInventario" @bind-Value="SelectedProducto.TipoInventario.ID_Tipo_Inventario" Width="100%"
+                                             TextField="N_Tipo_Inventario" ValueField="ID_Tipo_Inventario"
+                                             Placeholder="Seleccione un Tipo de Inventario" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Tipo de Material *@
+                            <label class="k-label">Tipo de Material</label>
+                            <TelerikComboBox Data="@LstTMaterial" @bind-Value="SelectedProducto.TipoMaterial.ID_Tipo_Material" Width="100%"
+                                             TextField="N_Tipo_Material" ValueField="ID_Tipo_Material"
+                                             Placeholder="Seleccione un Tipo de Material" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Cliente Proveedor *@
+                            <label class="k-label">Cliente Proveedor</label>
+                            <TelerikComboBox Data="@LstClienteProveedor" @bind-Value="SelectedProducto.ClienteProveedor.ID_Cliente_Proveedor" Width="100%"
+                                             TextField="N_Cliente_Proveedor" ValueField="ID_Cliente_Proveedor"
+                                             Placeholder="Seleccione un Cliente o Proveedor" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Estado *@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstados" @bind-Value="SelectedProducto.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado" ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-row">
+                    <ValidationSummary />
+                </div>
+
+
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+    public List<Data.Entities.Producto> LstProductos { get; set; }
+    //public Data.Entities.Producto SelectedProducto { get; set; }
+    private Data.Entities.Producto SelectedProducto = new Data.Entities.Producto();
+
+
+    public List<TipoDescuento> LstTDescuentos { get; set; }
+    public List<Tipo_inventario> LstTInventario { get; set; }
+    public List<Tipo_material> LstTMaterial { get; set; }
+    public List<Tipo_producto> LstTProductos { get; set; }
+    public List<Unidad> LstUnidades { get; set; }
+    public List<Marca> LstMarcas { get; set; }
+    public List<Familia> LstFamilias { get; set; }
+    public List<Subfamilia> LstSubfamilias { get; set; }
+    public List<Data.Entities.ClienteProveedor> LstClienteProveedor { get; set; }
+    public List<Data.Entities.Estado> LstEstados { get; set; }
+
+    Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+    public string Accion { get; set; }
+
+
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+
+    public bool ShowWindow { get; set; } = false;
+
+    private int CurrentValue { get; set; }
+    public TelerikNotification Notification { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        LstProductos = await srvProductos.GetProductos();
+
+        LstTDescuentos = await srvDescuentos.GetTipoDescuento();
+        LstTInventario = await srvTInventario.GetTipoInventario();
+        LstTMaterial = await srvTMaterial.GetTipoMaterial();
+        LstTProductos = await srvTProductos.GetTipoProductos();
+        LstUnidades = await srvUnidades.GetUnidades();
+        LstMarcas = await srvMarcas.GetMarca();
+        LstFamilias = await srvFamilias.GetFamilias();
+        LstSubfamilias = await srvSubfamilias.GetSubfamilia();
+        LstClienteProveedor = await srvClientesProveedores.GetClienteProveedors();
+        LstEstados = await srvEstados.GetEstados();
+    }
+
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+        Task.Delay(500);
+        StateHasChanged();
+
+    }
+
+    private void OnClick(string cAccion, Data.Entities.Producto producto)
+    {
+        SelectedProducto = producto;
+        //Boton Vista DetalleProducto
+        if (cAccion == "More")
+        {
+            int Id = SelectedProducto.ID_Producto;
+            NavigationManager.NavigateTo("/Referencias/ProductoDetalle/" + Id);
+
+        }
+        else
+        {
+
+            ShowWindow = true;
+            Accion = cAccion;
+
+
+            if (cAccion == "Add")
+            {
+                SelectedProducto = new Data.Entities.Producto()
+                { 
+                    ID_Producto = 0,
+                    N_Producto = string.Empty,
+                    Descripcion = string.Empty,
+                    Observaciones = string.Empty,
+                    Codigo_Barra = 0,
+                    Codigo_Interno = 0,
+                    Codigo_Parte = string.Empty,
+                    Codigo_Proveedor = string.Empty,
+                    Precio_Venta = 0,
+                    Precio_Web = 0,
+                    Valor_Flete = 0,
+                    Valor_Compra = 0,
+                    Valor_Costo = 0,
+                    Valor_Margen = 0,
+                    Valor_Descuento = 0,
+
+
+                    TipoDescuento = new TipoDescuento()
+                    {
+                        ID_Tipo_Descuento = 0,
+                        N_Tipo_Descuento = string.Empty
+                    },
+                    Unidad = new Unidad()
+                    {
+                        ID_Unidad = 0,
+                        N_Unidad = string.Empty
+                    },
+                    Marca = new Marca()
+                    {
+                        ID_Marca = 0,
+                        N_Marca = string.Empty
+                    },
+                    Familia = new Familia()
+                    {
+                        ID_Familia = 0,
+                        N_Familia = string.Empty
+                    },
+                    SubFamilia = new Subfamilia()
+                    {
+                        ID_Subfamilia = 0,
+                        N_Subfamilia = string.Empty
+                    },
+                    TipoProducto = new Tipo_producto()
+                    {
+                        ID_Tipo_Producto = 0,
+                        N_Tipo_Producto = string.Empty
+                    },
+                    TipoInventario = new Tipo_inventario()
+                    {
+                        ID_Tipo_Inventario = 0,
+                        N_Tipo_Inventario = string.Empty
+                    },
+                    TipoMaterial = new Tipo_material()
+                    {
+                        ID_Tipo_Material = 0,
+                        N_Tipo_Material = string.Empty
+                    },
+                    ClienteProveedor = new Data.Entities.ClienteProveedor()
+                    {
+                        ID_Cliente_Proveedor = 0,
+                        N_Cliente_Proveedor = string.Empty
+                    },
+
+                    Estado = new Estado()
+                    {
+                        ID_Estado = 0,
+                        N_Estado = string.Empty
+
+                    }
+                };
+
+                TituloWindow = "Agregar Producto";
+                TituloButton = "Agregar";
+                IconButton = "add";
+
+            }
+            else
+            {
+
+                SelectedProducto = producto;
+
+
+                if (Accion == "Upd")
+                {
+                    TituloWindow = "Actualizar Producto";
+                    TituloButton = "Guardar";
+                    IconButton = "save";
+
+                }
+
+                else
+                {
+                    TituloWindow = "Eliminar Producto";
+                    TituloButton = "Eliminar";
+                    IconButton = "delete";
+
+                }
+            }
+
+
+            StateHasChanged();
+        }
+    }
+    private async Task OnSave()
+    {
+
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstProductos.Exists(p => p.N_Producto == SelectedProducto.N_Producto))
+            {
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "El producto ya se encuentra en la lista...",
+                    ThemeColor = "warning",
+                    CloseAfter = 0
+                });
+            }
+            SelectedProducto.Valor_Costo = SelectedProducto.Valor_Compra + SelectedProducto.Valor_Flete;
+            SelectedProducto.Valor_Descuento = SelectedProducto.Valor_Descuento / 100;
+            var response = await srvProductos.CreateAsync(SelectedProducto);
+
+            if (response.IsSuccess)
+            {
+                LstProductos.Add(response.Result);
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se agrego un Producto correctamente",
+                    ThemeColor = "success",
+                    ShowIcon = true
+                });
+            } 
+            else
+            {
+                if (response.Message.Contains("Se debe asignar un Estado"))
+                {
+
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = response.Message,
+                        ThemeColor = "error",
+                        CloseAfter = 0
+                    });
+                }
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+            SelectedProducto.Valor_Costo = SelectedProducto.Valor_Compra + SelectedProducto.Valor_Flete;
+            SelectedProducto.Valor_Descuento = SelectedProducto.Valor_Descuento / 100;
+
+            var response = await srvProductos.UpdateAsync(SelectedProducto);
+            if (response.IsSuccess)
+            {
+
+                LstProductos.Add(response.Result);
+
+                var posicion = LstProductos.FindIndex(p => p.ID_Producto == SelectedProducto.ID_Producto);
+                if (posicion == -1)
+                {
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Ocurrio un error inesperado",
+                        ThemeColor = "error",
+                        CloseAfter = 0
+                    });
+                }
+                else
+                {
+                    LstProductos[posicion] = SelectedProducto;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Se Actualizo el Producto correctamente",
+                        ThemeColor = "info",
+                        ShowIcon = true
+                    });
+
+
+                } 
+
+            }
+            else
+            {
+                if (response.Message.Contains("Debe asignarle un Producto nuevo"))
+                {
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = response.Message,
+                        ThemeColor = "error",
+                        CloseAfter = 0
+                    });
+                }
+            }
+
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvProductos.DeleteAsync(SelectedProducto);
+            if (response.IsSuccess)
+            {
+                LstProductos = await srvProductos.GetProductos();
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Elimino el Producto correctamente",
+                    ThemeColor = "error",
+                    ShowIcon = true
+                });
+            }
+            else
+            {
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Ocurrio un error inesperado",
+                    ThemeColor = "error",
+                    CloseAfter = 0
+                });
+
+            }
+
+        }
+
+
+
+
+
+        LstProductos = await srvProductos.GetProductos();
+
+
+        StateHasChanged();
+    }
+
+    }

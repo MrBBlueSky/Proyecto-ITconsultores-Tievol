@@ -1,0 +1,274 @@
+﻿@page "/Referencias/Bodegas"
+
+@inject BodegasServices srvBodegas
+@inject SucursalesServices  srvSucursales
+@inject EstadosServices  srvEstados
+
+
+<TelerikGrid Data=@LstBodegas EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10 Resizable="true"
+             SelectionMode="GridSelectionMode.Single">
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+    <GridColumns>
+        <GridCommandColumn Width="70px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Bodega))" Icon="edit" />
+        </GridCommandColumn>
+        <GridColumn Field=@nameof(Bodega.ID_Bodega) Title="Identificador" Width="150px" />
+        <GridColumn Field=@nameof(Bodega.N_Bodega) Title="Descripción" />
+        <GridColumn Field=@nameof(Bodega.Sucursal) Title="ID Sucursal" Sortable="false">
+            <Template>
+                @((context as Bodega).Sucursal.N_Sucursal)
+            </Template>
+        </GridColumn>
+        <GridColumn Field=@nameof(Bodega.Estado) Title="ID Estado" Sortable="false">
+            <Template>
+                @((context as Bodega).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+
+        <GridCommandColumn Width="70px">
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Bodega))" />
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedBodega" OnValidSubmit="@OnSave">
+            <!-- Card -->
+            <div class="card" style="width: 500px; height: 100px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+            </div>
+
+            <div class="card-body text-muted">
+                <DataAnnotationsValidator />
+                <div class="row my-1">
+                    <div class="col">
+                        <!-- ID_Bodega -->
+                        <label class="k-label">Identificador</label>
+                        <TelerikNumericTextBox @bind-Value="SelectedBodega.ID_Bodega" Width="100%" @ref="IDInt" Enabled="false" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col">
+                        <!-- Nombre Bodega -->
+                        <label class="k-label">Descripción</label>
+                        <TelerikTextBox @bind-Value="SelectedBodega.N_Bodega" Width="100%" />
+                        <ValidationMessage For="@(() => SelectedBodega.N_Bodega)" />
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col">
+                        <!-- ID_Sucursal -->
+                        <label class="k-label">Sucursal</label>
+                        <TelerikComboBox Data="@LstSucursales" @bind-Value="SelectedBodega.Sucursal.ID_Sucursal" Width="100%"
+                                         TextField="N_Sucursal" ValueField="ID_Sucursal"
+                                         Placeholder="Seleccione una Sucursal..." ClearButton="true" Filterable="true">
+                        </TelerikComboBox>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+
+                    <div class="col">
+                        <!-- ID_Estado -->
+                        <label class="k-label">Estado</label>
+                        <TelerikComboBox Data="@LstEstados" @bind-Value="SelectedBodega.Estado.ID_Estado" Width="100%"
+                                         TextField="N_Estado" ValueField="ID_Estado"
+                                         Placeholder="Seleccione un Estado..." ClearButton="true" Filterable="true">
+                        </TelerikComboBox>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <ValidationSummary />
+                </div>
+
+
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            <!-- Card -->
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+@code {
+        //
+    public List<Bodega> LstBodegas { get; set; }
+    public List<Sucursal> LstSucursales { get; set; }
+    public List<Estado> LstEstados { get; set; }
+
+    //
+    public string Accion { get; set; }
+    public Bodega SelectedBodega { get; set; }
+
+    //
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+
+    public bool ShowWindow { get; set; } = false;
+
+    // Referencias de tipo
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+    //
+    protected override async Task OnInitializedAsync()
+    {
+
+        LstBodegas = await srvBodegas.GetBodegas();
+        LstSucursales = await srvSucursales.GetSucursales();
+        LstEstados = await srvEstados.GetEstados();
+    }
+    //
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+        //
+        StateHasChanged();
+    }
+    //
+    private void OnClick(string cAccion, Bodega bodega)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+        SelectedBodega = bodega;
+
+        if (cAccion == "Add")
+        {   //
+            SelectedBodega = new Bodega()
+            {
+                ID_Bodega = 0,
+                N_Bodega = string.Empty,
+                Sucursal = new Sucursal()
+                {
+                    ID_Sucursal = 0,
+                    N_Sucursal = string.Empty,
+                    Direccion = string.Empty,
+                    Telefono1 = string.Empty,
+                    Telefono2 = string.Empty,
+                    Movil1 = string.Empty,
+                    Movil2 = string.Empty,
+                    Direccion_Correo = string.Empty
+                },
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado = string.Empty
+                }
+            };
+
+            TituloWindow = "Agregar Bodega";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {   //
+            SelectedBodega = bodega;
+
+            //
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Bodega";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Bodega";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+        //
+        StateHasChanged();
+    }
+    //
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstBodegas.Exists(e => e.N_Bodega == SelectedBodega.N_Bodega))
+            {
+                //toast.ShowWarning("La descripción ya se encuentra en la lista...", "ATENCION");
+                return;
+            }
+
+            var response = await srvBodegas.CreateAsync(SelectedBodega);
+            if (response.IsSuccess)
+            {
+                LstBodegas.Add(response.Result);
+                //toast.ShowSuccess("Los datos se almacenaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvBodegas.UpdateAsync(SelectedBodega);
+            if (response.IsSuccess)
+            {
+                LstBodegas.Add(response.Result);
+                var posicion = LstBodegas.FindIndex(e => e.ID_Bodega == SelectedBodega.ID_Bodega);
+                if (posicion == -1)
+                {
+                    //toast.ShowError("Se produjo un error inesperado...", "ERROR");
+                }
+                else
+                {
+                    LstBodegas[posicion] = SelectedBodega;
+                    //toast.ShowSuccess("Los datos se almacenaron correctamente...", "ATENCION");
+                }
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvBodegas.DeleteAsync(SelectedBodega);
+            if (response.IsSuccess)
+            {
+                LstBodegas = await srvBodegas.GetBodegas();
+                //toast.ShowSuccess("Los datos se eliminaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        //
+        LstBodegas = await srvBodegas.GetBodegas();
+
+        //
+        StateHasChanged();
+    }
+
+}

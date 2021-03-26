@@ -1,0 +1,230 @@
+﻿@page "/Referencias/Regiones"
+
+@inject RegionesServices  srvRegiones
+
+
+<TelerikGrid Data=@LstRegiones EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10
+             SelectionMode="GridSelectionMode.Single">
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Region))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Region))" />
+        </GridCommandColumn>
+        @*<GridColumn Field=@nameof(Region.ID_Region) Title="Identificador" Width="150px" />*@
+        <GridColumn Field=@nameof(Region.N_Region) Title="Nombre" />
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedRegion" OnValidSubmit="@OnSave">
+            @*Modal Regiones*@
+            <div class="card" style="width: 500px; height: 350px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    <!--<div class="row my-1">
+                <div class="col">-->
+                    @*Identificador*@
+                    <!--<label class="k-label">Identificador</label>
+                    <TelerikNumericTextBox @bind-Value="SelectedRegion.ID_Region" Width="100%" @ref="IDInt" Enabled="false" />
+                </div>
+            </div>-->
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedRegion.N_Region" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedRegion.N_Region)" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <ValidationSummary />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal Regiones*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    // Referencias de tipo
+    public List<Region> LstRegiones { get; set; }
+    public string Accion { get; set; }
+    public Region SelectedRegion { get; set; }
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+    public bool ShowWindow { get; set; } = false;
+    public TelerikNotification Notification { get; set; }
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        LstRegiones = await srvRegiones.GetRegiones();
+    }
+
+
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+        StateHasChanged();
+    }
+
+    private void OnClick(string cAccion, Region Region)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+        SelectedRegion = Region;
+
+        if (cAccion == "Add")
+        {
+            SelectedRegion = new Region()
+            {
+                ID_Region = 0,
+                N_Region = "",
+            };
+
+            TituloWindow = "Agregar Región";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {
+            SelectedRegion = Region;
+
+
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Región";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Región";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstRegiones.Exists(e => e.N_Region == SelectedRegion.N_Region))
+            {
+                //"ATENCION"
+                return;
+            }
+
+            var response = await srvRegiones.CreateAsync(SelectedRegion);
+            if (response.IsSuccess)
+            {
+                LstRegiones.Add(response.Result);
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Agregó la Región correctamente...",
+                    ThemeColor = "success",
+                    ShowIcon = true
+                });
+
+            }
+            else
+            {
+                //"ERROR"
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvRegiones.UpdateAsync(SelectedRegion);
+            if (response.IsSuccess)
+            {
+                LstRegiones.Add(response.Result);
+                var posicion = LstRegiones.FindIndex(e => e.ID_Region == SelectedRegion.ID_Region);
+                if (posicion == -1)
+                {
+                    //"ERROR"
+                }
+                else
+                {
+                    LstRegiones[posicion] = SelectedRegion;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Se Actualizó correctamente la Región",
+                        ThemeColor = "info",
+                        ShowIcon = true
+                    });
+                    
+                }
+            }
+            else
+            {
+               
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvRegiones.DeleteAsync(SelectedRegion);
+            if (response.IsSuccess)
+            {
+                LstRegiones = await srvRegiones.GetRegiones();
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Eliminó correctamente la Región",
+                    ThemeColor = "error",
+                    ShowIcon = true
+                });
+               
+            }
+            else
+            {
+            
+            }
+        }
+
+
+        LstRegiones = await srvRegiones.GetRegiones();
+
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,115 @@
+﻿@using Telerik.Blazor.Components
+@page "/Referencias/ProductoDetalle/{Id:int}"
+
+@using System.ComponentModel.DataAnnotations
+
+@inject NavigationManager NavigationManager
+@inject ProductoServices  srvProductos
+
+
+
+
+
+<h3>Detalle del Producto :<br /><strong>  @NombreProductos</strong></h3>
+<br />
+<TelerikTabStrip TabPosition="Telerik.Blazor.TabPosition.Left" @ref="TabDetalleProducto">
+    <TabStripTab Title="Detalles">
+        <h5>ID del Producto</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@IDValue></TelerikTextBox>
+        <h5>Nombre del Producto</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@NValue></TelerikTextBox>
+        <h5>Descripción</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Description></TelerikTextBox>
+        <h5>Observaciones</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Comments></TelerikTextBox>
+        @* Label="ID Producto"  ID Producto,Nombre,Descripcion,Observaciones.*@
+    </TabStripTab>
+    <TabStripTab Title="Códigos">
+        <h5>Código de Barra</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Barcode></TelerikTextBox>
+        <h5>Código Interno</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Intercode></TelerikTextBox>
+        <h5>Código Parte</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Parcode></TelerikTextBox>
+        <h5>Código Proveedor</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Supcode></TelerikTextBox>
+        @*Codigo de Barra,Codigo Interno,Codigo Parte,Codigo Proveedor.*@
+    </TabStripTab>
+    <TabStripTab Title="Precios">
+        <h5>Precio de Venta</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="C" @bind-Value=@Sellprice></TelerikNumericTextBox>
+        <h5>Precio Web</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="C" @bind-Value=@Webprice></TelerikNumericTextBox>
+        @*Precio de Venta, Precio Web*@
+    </TabStripTab>
+    <TabStripTab Title="Valores">
+        <h5>Valor Compra</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="C" @bind-Value=@Purchvalue></TelerikNumericTextBox>
+        <h5>Valor Flete</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="C" @bind-Value=@Freigvalue></TelerikNumericTextBox>
+        <h5>Valor Costo</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="C" @bind-Value=@Costvalue></TelerikNumericTextBox>
+        <h5>Descuento</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="P" @bind-Value=@Discvalue></TelerikNumericTextBox>
+
+        <h5>Valor Margen</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="C" @bind-Value=@Margvalue></TelerikNumericTextBox>
+        @*                               Step="0.01m"
+            Decimals="2"Valor Compra,Valor Costo,Valor Descuento,Valor Flete,Valor Margen.*@
+    </TabStripTab>
+</TelerikTabStrip>
+
+
+<TelerikButton Icon="undo" OnClick="@RedirectProduct">Volver a Productos</TelerikButton>
+
+@code {
+    public Data.Entities.Producto PD { get; set; }
+    private string IDValue { get; set; }
+    private string NValue { get; set; }
+    private string Description { get; set; }
+    private string Comments { get; set; }
+    private string Barcode { get; set; }
+    private string Intercode { get; set; }
+    private string Parcode { get; set; }
+    private string Supcode { get; set; }
+    private double Sellprice { get; set; }
+    private double Webprice { get; set; }
+    private double Purchvalue { get; set; }
+    private double Costvalue { get; set; }
+    private double Discvalue { get; set; }
+    private double Freigvalue { get; set; }
+    private double Margvalue { get; set; }
+    private string NombreProductos { get; set; }
+
+
+    [Parameter]
+    public int Id { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        Data.Entities.Producto clProvedor = await srvProductos.GetProducto(Id);
+
+        NombreProductos = clProvedor.N_Producto;
+        PD = await srvProductos.GetProducto(Id);
+        IDValue = PD.ID_Producto.ToString();
+        NValue = PD.N_Producto;
+        Description = PD.Descripcion;
+        Comments = PD.Observaciones;
+        Barcode = PD.Codigo_Barra.ToString();
+        Intercode = PD.Codigo_Interno.ToString();
+        Parcode = PD.Codigo_Parte;
+        Supcode = PD.Codigo_Proveedor;
+        Sellprice = PD.Precio_Venta;
+        Webprice = PD.Precio_Web;
+        Purchvalue = PD.Valor_Compra;
+        Costvalue = PD.Valor_Costo;
+        Discvalue = PD.Valor_Descuento;
+        Freigvalue = PD.Valor_Flete;
+        Margvalue = PD.Valor_Margen;
+    }
+
+    void RedirectProduct()
+    {
+        NavigationManager.NavigateTo("/Referencias/Producto");
+    }
+    Telerik.Blazor.Components.TelerikTabStrip TabDetalleProducto;
+}

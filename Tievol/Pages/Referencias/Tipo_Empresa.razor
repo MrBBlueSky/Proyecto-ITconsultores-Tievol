@@ -1,0 +1,249 @@
+﻿@page "/Referencias/Tipo_Empresa"
+
+@inject TipoEmpresaServices srvTEmpresa
+@inject EstadosServices srvEstados
+
+<TelerikGrid Data=@LstTEmpresa EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10 Resizable="true"
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="70px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Tipo_empresa))" Icon="edit" />
+        </GridCommandColumn>
+        <GridColumn Field=@nameof(Tipo_empresa.ID_Tipo_Empresa) Title="Identificador" Width="150px" />
+        <GridColumn Field=@nameof(Tipo_empresa.N_Tipo_Empresa) Title="Descripción" />
+        <GridColumn Field=@nameof(Tipo_empresa.Estado) Title="Estado" Sortable="false">
+            <Template>
+                @( (context as Tipo_empresa).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+
+
+        <GridCommandColumn Width="70px">
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Tipo_empresa))" />
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedTEmpresa" OnValidSubmit="@OnSave">
+            <!-- Card -->
+            <div class="card" style="width: 500px; height: 450px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    <div class="row my-1">
+                        <div class="col">
+                            <!-- ID_Comuna -->
+                            <label class="k-label">Identificador</label>
+                            <TelerikNumericTextBox @bind-Value="SelectedTEmpresa.ID_Tipo_Empresa" Width="100%" @ref="IDInt" Enabled="false" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <!-- Nombre_Comuna -->
+                            <label class="k-label">Descripción</label>
+                            <TelerikTextBox @bind-Value="SelectedTEmpresa.N_Tipo_Empresa " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTEmpresa.N_Tipo_Empresa)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col">
+                            <!-- Estado -->
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstado" @bind-Value="SelectedTEmpresa.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <ValidationSummary />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            <!-- Card -->
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    //
+    public List<Tipo_empresa> LstTEmpresa { get; set; }
+    public List<Estado> LstEstado { get; set; }
+    //
+    public string Accion { get; set; }
+    public Tipo_empresa SelectedTEmpresa { get; set; }
+
+    //
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+
+    public bool ShowWindow { get; set; } = false;
+
+    public TelerikNotification Notification { get; set; }
+
+    // Referencias de tipo
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        LstEstado = await srvEstados.GetEstados();
+        LstTEmpresa = await srvTEmpresa.GetTipoEmpresa();
+    }
+    //
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+    }
+    //
+    private void OnClick(string cAccion, Tipo_empresa tipo_Empresa)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+
+        if (cAccion == "Add")
+        {   //
+            SelectedTEmpresa = new Tipo_empresa()
+            {
+                ID_Tipo_Empresa = 0,
+                N_Tipo_Empresa = string.Empty,
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado = string.Empty
+                }
+
+            };
+
+            TituloWindow = "Agregar Tipo de Empresa";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {   //
+            SelectedTEmpresa = tipo_Empresa;
+
+            //
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Tipo de Empresa";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Tipo de Empresa";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+        //
+        StateHasChanged();
+    }
+    //
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstTEmpresa.Exists(td => td.N_Tipo_Empresa == SelectedTEmpresa.N_Tipo_Empresa))
+            {
+                //toast.ShowWarning("La descripción ya se encuentra en la lista...", "ATENCION");
+                return;
+            }
+
+            var response = await srvTEmpresa.CreateAsync(SelectedTEmpresa);
+            if (response.IsSuccess)
+            {
+                LstTEmpresa.Add(response.Result);
+                //toast.ShowSuccess("Los datos se almacenaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Upd")// Metodo comportamiento extraño
+        {
+
+            var response = await srvTEmpresa.UpdateAsync(SelectedTEmpresa);
+            if (response.IsSuccess)
+            {
+                LstTEmpresa.Add(response.Result);
+                var posicion = LstTEmpresa.FindIndex(td => td.ID_Tipo_Empresa == SelectedTEmpresa.ID_Tipo_Empresa);
+                if (posicion == -1)
+                {
+                    //toast.ShowError("Se produjo un error inesperado...", "ERROR");
+                }
+                else
+                {
+                    LstTEmpresa[posicion] = SelectedTEmpresa;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Los datos se almacenaron correctamente...",
+                        ThemeColor = "primary",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvTEmpresa.DeleteAsync(SelectedTEmpresa);
+            if (response.IsSuccess)
+            {
+                LstTEmpresa = await srvTEmpresa.GetTipoEmpresa();
+                //toast.ShowSuccess("Los datos se eliminaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        //
+        LstTEmpresa = await srvTEmpresa.GetTipoEmpresa();
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,427 @@
+@page "/Referencias/ClienteProveedor"
+
+@inject ClienteProveedorServices srvClienteProveedor
+@inject EstadosServices srvEstados
+@inject ComunasServices srvComunas
+@inject PaisesServices srvPaises
+@inject CiudadesServices srvCiudades
+@inject RegionesServices srvRegiones
+@inject NavigationManager NavigationManager
+
+<TelerikGrid Data=@LstClienteProveedor EditMode="@GridEditMode.Popup" Width="auto" Height="auto"
+             Sortable=true Pageable=true PageSize=10
+             SelectionMode="GridSelectionMode.Single">
+
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Data.Entities.ClienteProveedor))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Data.Entities.ClienteProveedor))" />
+            <GridCommandButton Icon="more-horizontal" OnClick="@((args) => OnClick("More", args.Item as Data.Entities.ClienteProveedor))" />
+        </GridCommandColumn>
+
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Rut) Title="Rut" />
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.N_Cliente_Proveedor) Title="Nombre" />
+        
+        @*<GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Razon_Social) Title="Razon Social" />
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.ID_Cliente_Proveedor) Title="Identificador" Width="150px" />
+                <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Giro) Title="Giro" />*@
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Direccion_Correo) Title="Correo Electronico" />
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Direccion) Title="Direccion" />
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Observaciones) Title="Observacion" />
+        @*<GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Telefono) Title="Telefono" />
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Movil) Title="Movil" />*@
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Fecha_Ingreso) Title="Fecha de Ingreso" />
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Monto_Credito) Title="Monto de Credito" />
+        <GridColumn Field=@nameof(Data.Entities.ClienteProveedor.Estado) Title="Estado" Sortable="false">
+            <Template>
+                @( (context as Data.Entities.ClienteProveedor).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+
+
+
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedTClienteProveedor" OnValidSubmit="@OnSave">
+            @*Modal CLienteProveedor*@
+            <div class="card" style="width: 500px; height: 700px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.N_Cliente_Proveedor " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.N_Cliente_Proveedor)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*RUT*@
+                            <label class="k-label">RUT</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Rut " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Rut)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Razon Social *@
+                            <label class="k-label">Razon Social</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Razon_Social " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Razon_Social)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Giro *@
+                            <label class="k-label">Giro</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Giro " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Giro)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Direccion *@
+                            <label class="k-label">Direccion</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Direccion " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Direccion)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Direccion Correo *@
+                            <label class="k-label">Correo Electronico</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Direccion_Correo " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Direccion_Correo)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Observaciones *@
+                            <label class="k-label">Observaciones</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Observaciones " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Observaciones)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Telefono *@
+                            <label class="k-label">Telefono</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Telefono " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Telefono)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Movil *@
+                            <label class="k-label">Movil</label>
+                            <TelerikTextBox @bind-Value="SelectedTClienteProveedor.Movil " Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Movil)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Fecha Ingreso *@
+                            <label class="k-label">Fecha Ingreso</label>
+                            <TelerikDateTimePicker Min="@Min" Max="@Max" @bind-Value="@SelectedTClienteProveedor.Fecha_Ingreso"
+                                                   Format="dd MMM yyyy HH:mm:ss" Width="100%"></TelerikDateTimePicker>
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Fecha_Ingreso)" />
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* >Monto Credito *@
+                            <label class="k-label">Monto Credito</label>
+                            <TelerikNumericTextBox Arrows="false" Format="C"  @bind-Value="@SelectedTClienteProveedor.Monto_Credito" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedTClienteProveedor.Monto_Credito)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Region*@
+                            <label class="k-label">Region</label>
+                            <TelerikComboBox Data="@LstRegiones" @bind-Value="SelectedTClienteProveedor.ID_Region" Width="100%"
+                                             TextField="N_Region" ValueField="ID_Region"
+                                             ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Comuna*@
+                            <label class="k-label">Comuna</label>
+                            <TelerikComboBox Data="@LstComunas" @bind-Value="SelectedTClienteProveedor.ID_Comuna" Width="100%"
+                                             TextField="N_Comuna" ValueField="ID_Comuna"
+                                             ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Ciudad*@
+                            <label class="k-label">Ciudad</label>
+                            <TelerikComboBox Data="@LstCiudades" @bind-Value="SelectedTClienteProveedor.ID_Ciudad" Width="100%"
+                                             TextField="N_Ciudad" ValueField="ID_Ciudad"
+                                             ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Paises*@
+                            <label class="k-label">Pais</label>
+                            <TelerikComboBox Data="@LstPaises" @bind-Value="SelectedTClienteProveedor.ID_Pais" Width="100%"
+                                             TextField="N_Pais" ValueField="ID_Pais"
+                                             ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @* Estado *@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstado" @bind-Value="SelectedTClienteProveedor.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+                    @*Placeholder="Seleccione el Estado"*@
+                    <div class="form-row">
+                        <ValidationSummary />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal CLienteProveedor*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code {
+
+    // Referencias de tipo
+    public DateTime Min = new DateTime(1990, 1, 1, 8, 15, 0);
+    public DateTime Max = new DateTime(2025, 1, 1, 19, 30, 45);
+    public List<Data.Entities.ClienteProveedor> LstClienteProveedor { get; set; }
+    public List<Estado> LstEstado { get; set; }
+    public List<Comuna> LstComunas { get; set; }
+    public List<Ciudad> LstCiudades { get; set; }
+    public List<Pais> LstPaises { get; set; }
+    public List<Region> LstRegiones { get; set; }
+    public string Accion { get; set; }
+    public Data.Entities.ClienteProveedor SelectedTClienteProveedor { get; set; }
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+    public bool ShowWindow { get; set; } = false;
+    public TelerikNotification Notification { get; set; }
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        LstEstado = await srvEstados.GetEstados();
+        LstRegiones = await srvRegiones.GetRegiones();
+        LstCiudades = await srvCiudades.GetCiudades();
+        LstComunas = await srvComunas.GetComunas();
+        LstPaises = await srvPaises.GetPaises();
+        LstClienteProveedor = await srvClienteProveedor.GetClienteProveedors();
+    }
+
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+    }
+
+    private void OnClick(string cAccion, Data.Entities.ClienteProveedor ClienteProveedor)
+    {
+        SelectedTClienteProveedor = ClienteProveedor;
+        //Boton Vista DetalleProducto
+        if (cAccion == "More")
+        {
+            int Id = SelectedTClienteProveedor.ID_Cliente_Proveedor;
+            NavigationManager.NavigateTo("/Referencias/ClienteProveedorDetalle/" + Id);
+
+        }
+        else
+        {
+
+            ShowWindow = true;
+            Accion = cAccion;
+
+
+            if (cAccion == "Add")
+            {
+                SelectedTClienteProveedor = new Data.Entities.ClienteProveedor()
+                {
+                    ID_Cliente_Proveedor = 0,
+                    N_Cliente_Proveedor = string.Empty,
+                    ID_Tipo_Cliente_Proveedor = 0,
+                    Rut = string.Empty,
+                    Razon_Social = string.Empty,
+                    Giro = string.Empty,
+                    Direccion = string.Empty,
+                    ID_Ciudad = 0,
+                    ID_Comuna = 0,
+                    ID_Region = 0,
+                    ID_Pais = 0,
+                    Telefono = string.Empty,
+                    Movil = string.Empty,
+                    Direccion_Correo = string.Empty,
+                    ID_Condicion_Venta = 0,
+                    Monto_Credito = 0.0,
+                    Observaciones = string.Empty,
+                    ID_Usuario = string.Empty,
+                    Estado = new Estado()
+                    {
+                        ID_Estado = 0,
+                        N_Estado = string.Empty
+                    },
+
+
+                };
+
+                TituloWindow = "Agregar un Cliente o Proveedor";
+                TituloButton = "Agregar";
+                IconButton = "add";
+            }
+            else
+            {
+                SelectedTClienteProveedor = ClienteProveedor;
+
+
+                if (Accion == "Upd")
+                {
+                    TituloWindow = "Actualizar el Cliente o Proveedor";
+                    TituloButton = "Guardar";
+                    IconButton = "save";
+
+                }
+                else
+                {
+                    TituloWindow = "Eliminar un Cliente o Proveedor";
+                    TituloButton = "Eliminar";
+                    IconButton = "delete";
+
+                }
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstClienteProveedor.Exists(tcp => tcp.N_Cliente_Proveedor == SelectedTClienteProveedor.N_Cliente_Proveedor))
+            {
+
+                return;
+            }
+
+            var response = await srvClienteProveedor.CreateAsync(SelectedTClienteProveedor);
+            if (response.IsSuccess)
+            {
+                LstClienteProveedor.Add(response.Result);
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se agrego un Proveedor correctamente",
+                    ThemeColor = "success",
+                    ShowIcon = true
+                });
+            }
+            else
+            {
+                //Añadir notificaciones
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvClienteProveedor.UpdateAsync(SelectedTClienteProveedor);
+            if (response.IsSuccess)
+            {
+                LstClienteProveedor.Add(response.Result);
+                var posicion = LstClienteProveedor.FindIndex(tcp => tcp.ID_Cliente_Proveedor == SelectedTClienteProveedor.ID_Cliente_Proveedor);
+                if (posicion == -1)
+                {
+                    //"ERROR"
+                }
+                else
+                {
+                    LstClienteProveedor[posicion] = SelectedTClienteProveedor;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Se Actualizo el Proveedor correctamente",
+                        ThemeColor = "info",
+                        ShowIcon = true
+                    });
+                }
+            }
+            else
+            {
+                //"ERROR"
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvClienteProveedor.DeleteAsync(SelectedTClienteProveedor);
+            if (response.IsSuccess)
+            {
+                LstClienteProveedor = await srvClienteProveedor.GetClienteProveedors();
+                //"ATENCION"
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Elimino el Proveedor correctamente",
+                    ThemeColor = "error",
+                    ShowIcon = true
+                });
+            }
+            else
+            {
+                //"ERROR"
+            }
+        }
+
+
+        LstClienteProveedor = await srvClienteProveedor.GetClienteProveedors();
+
+        StateHasChanged();
+    } }

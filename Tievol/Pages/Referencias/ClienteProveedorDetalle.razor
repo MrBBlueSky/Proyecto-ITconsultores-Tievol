@@ -1,0 +1,154 @@
+﻿@using Telerik.Blazor.Components
+@page "/Referencias/ClienteProveedorDetalle/{Id:int}"
+
+
+@inject NavigationManager NavigationManager
+@inject CiudadesServices srvCiudades
+@inject ComunasServices srvComunas
+@inject RegionesServices srvRegiones
+@inject PaisesServices srvPaises
+@inject ClienteProveedorServices srvClienteProveedor
+
+
+
+
+
+
+<h3>Detalles del Proveedor:<br /><strong> @NombreClienteProveedor</strong></h3> <br />
+
+<TelerikTabStrip TabPosition="Telerik.Blazor.TabPosition.Left" @ref="TabDetalleClienteProveedor">
+
+    <TabStripTab Title="Datos Personales">
+        <h5>ID del Cliente o Proveedor</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@IDClieProv></TelerikTextBox>
+        <h5>Nombre del Cliente o Proveedor</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@NClieProv></TelerikTextBox>
+        <h5>Rut</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@RutCP></TelerikTextBox>
+        <h5>Razon Social</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@SReason></TelerikTextBox>
+        <h5>Giro</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@LBusiness></TelerikTextBox>
+        <h5>Dirección</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Address></TelerikTextBox>
+        <h5>Teléfono</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Phone></TelerikTextBox>
+        <h5>Móvil</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Mobile></TelerikTextBox>
+        <h5>Correo Electrónico</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@EmailA></TelerikTextBox>
+        <h5>Fecha Ingreso</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@DateE></TelerikTextBox>
+        @*Tener que pedir la id del producto o simplemente pedir el nombre y añade solo el id*@
+        @* Label="ID Producto"  ID Producto,Nombre,Descripcion,Observaciones.*@
+    </TabStripTab>
+    <TabStripTab Title="Otros Datos">
+        <h5>Condicion de Venta</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@SaleCond></TelerikTextBox>
+        <h5>Tipo Cliente o Proveedor</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@TipoCLiPro></TelerikTextBox>
+        <h5>Monto del Credito</h5>
+        <TelerikNumericTextBox Enabled="false" Arrows="false" Format="C" @bind-Value=@AmountC></TelerikNumericTextBox>
+        <h5>Observaciones</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Remarks></TelerikTextBox>
+    </TabStripTab>
+    <TabStripTab Title="Geografía">
+        <h5>Ciudad</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@City></TelerikTextBox>
+        <h5>Comuna</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Commune></TelerikTextBox>
+        <h5>Region</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Region></TelerikTextBox>
+        <h5>Pais</h5>
+        <TelerikTextBox Enabled="false" @bind-Value=@Country></TelerikTextBox>
+        @*<h5>Estado</h5>
+            <TelerikTextBox Enabled="false" @bind-Value=@StatusAux></TelerikTextBox>*@
+    </TabStripTab>
+
+</TelerikTabStrip>
+
+
+<TelerikButton Icon="undo" OnClick="@RedirectProduct">Volver a Cliente Proveedor</TelerikButton>
+
+@code {
+        public Data.Entities.ClienteProveedor PCP { get; set; }
+        public List<Pais> LstPaises { get; set; }
+        private string IDClieProv { get; set; }
+        private string NClieProv { get; set; }
+        private string TipoCLiPro { get; set; }
+        private string RutCP { get; set; }
+        private string RazSoc { get; set; }
+        private string Giro { get; set; }
+        private string Direc { get; set; }
+        private string Country { get; set; }
+        private string City { get; set; }
+        private string Commune { get; set; }
+        private string Region { get; set; }
+        //private string RutAux { get; set; }
+        private string SReason { get; set; }
+        private string LBusiness { get; set; }
+        private string Address { get; set; }
+        private string Phone { get; set; }
+        private string Mobile { get; set; }
+        private string EmailA { get; set; }
+        private string DateE { get; set; }
+        private string SaleCond { get; set; }
+        private double AmountC { get; set; }
+        private string Remarks { get; set; }
+        private Ciudad nCiudad { get; set; }
+        private Comuna nComuna { get; set; }
+        private Region nRegion { get; set; }
+        private Pais nPais { get; set; }
+    
+        //private string StatusAux { get; set; }
+        private string NombreClienteProveedor {get;set;}
+
+
+
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Data.Entities.ClienteProveedor clProvedor = await srvClienteProveedor.GetClienteProveedors(Id);
+
+        NombreClienteProveedor = clProvedor.N_Cliente_Proveedor;
+        PCP = await srvClienteProveedor.GetClienteProveedors(Id);
+        IDClieProv = PCP.ID_Cliente_Proveedor.ToString();
+        NClieProv = PCP.N_Cliente_Proveedor;
+        TipoCLiPro = PCP.ID_Tipo_Cliente_Proveedor.ToString();
+        RutCP = PCP.Rut;
+        RazSoc = PCP.Razon_Social;
+        nPais = await srvPaises.GetPais(PCP.ID_Pais);
+        Country = nPais.N_Pais;
+        nCiudad = await srvCiudades.GetCiudad(PCP.ID_Ciudad);
+        City = nCiudad.N_Ciudad;
+        nComuna = await srvComunas.GetComuna(PCP.ID_Comuna);
+        Commune = nComuna.N_Comuna;
+        nRegion = await srvRegiones.GetRegion(PCP.ID_Region);
+        Region = nRegion.N_Region;
+        //RutAux = PCP.Rut;
+        SReason = PCP.Razon_Social;
+        LBusiness = PCP.Giro;
+        Address = PCP.Direccion;
+        Phone = PCP.Telefono;
+        Mobile = PCP.Movil;
+        EmailA = PCP.Direccion_Correo;
+        DateE = PCP.Fecha_Ingreso.ToString();
+        SaleCond = PCP.ID_Condicion_Venta.ToString();
+        AmountC = PCP.Monto_Credito;
+        Remarks = PCP.Observaciones;
+        //StatusAux = PCP.Estado.ToString();
+
+
+
+
+    }
+
+    void RedirectProduct()
+    {
+        NavigationManager.NavigateTo("/Referencias/ClienteProveedor");
+    }
+    Telerik.Blazor.Components.TelerikTabStrip TabDetalleClienteProveedor;
+}

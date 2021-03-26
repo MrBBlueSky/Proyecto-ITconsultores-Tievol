@@ -1,0 +1,208 @@
+﻿@page "/Referencias/Estados"
+
+@inject EstadosServices  srvEstados
+
+<TelerikGrid Data=@LstEstados EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10
+             SelectionMode="GridSelectionMode.Single">
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Estado))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Estado))" />
+        </GridCommandColumn>
+        <GridColumn Field=@nameof(Estado.ID_Estado) Title="Identificador" Width="150px" />
+        <GridColumn Field=@nameof(Estado.N_Estado) Title="Descripción" />
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedEstado" OnValidSubmit="@OnSave">
+            @*Modal Estados*@
+            <div class="card" style="width: 500px; height: 350px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                    <!--<div class="row my-1">
+                <div class="col">-->
+                    @*ID estado*@
+                    <!--<label class="k-label">Identificador</label>
+                    <TelerikNumericTextBox @bind-Value="SelectedEstado.ID_Estado" Width="100%" @ref="IDInt" Enabled="false" />
+                </div>
+            </div>-->
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Descripcion*@
+                            <label class="k-label">Descripción del Estado</label>
+                            <TelerikTextBox @bind-Value="SelectedEstado.N_Estado" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedEstado.N_Estado)" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <ValidationSummary />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal Estados*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+@code {
+
+    // Referencias de tipo
+    public List<Estado> LstEstados { get; set; }
+    public string Accion { get; set; }
+    public Estado SelectedEstado { get; set; }
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+    public bool ShowWindow { get; set; } = false;
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+        LstEstados = await srvEstados.GetEstados();
+    }
+
+    
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+        
+        StateHasChanged();
+    }
+    
+    private void OnClick(string cAccion, Estado Estado)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+        SelectedEstado = Estado;
+
+        if (cAccion == "Add")
+        {   
+            SelectedEstado = new Estado()
+            {
+                ID_Estado = 0,
+                N_Estado = "",
+            };
+
+            TituloWindow = "Agregar Estado";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {   
+            SelectedEstado = Estado;
+
+            
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Estado";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Estado";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+        
+        StateHasChanged();
+    }
+    
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstEstados.Exists(e => e.N_Estado == SelectedEstado.N_Estado))
+            {
+                //toast.ShowWarning("La descripción ya se encuentra en la lista...", "ATENCION");
+                return;
+            }
+
+            var response = await srvEstados.CreateAsync(SelectedEstado);
+            if (response.IsSuccess)
+            {
+                LstEstados.Add(response.Result);
+                //toast.ShowSuccess("Los datos se almacenaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvEstados.UpdateAsync(SelectedEstado);
+            if (response.IsSuccess)
+            {
+                LstEstados.Add(response.Result);
+                var posicion = LstEstados.FindIndex(e => e.ID_Estado == SelectedEstado.ID_Estado);
+                if (posicion == -1)
+                {
+                    //toast.ShowError("Se produjo un error inesperado...", "ERROR");
+                }
+                else
+                {
+                    LstEstados[posicion] = SelectedEstado;
+                    //toast.ShowSuccess("Los datos se almacenaron correctamente...", "ATENCION");
+                }
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvEstados.DeleteAsync(SelectedEstado);
+            if (response.IsSuccess)
+            {
+                LstEstados = await srvEstados.GetEstados();
+                //toast.ShowSuccess("Los datos se eliminaron correctamente...", "ATENCION");
+            }
+            else
+            {
+                //toast.ShowError(response.Message, "ERROR");
+            }
+        }
+
+        
+        LstEstados = await srvEstados.GetEstados();
+
+        
+        StateHasChanged();
+    }
+}

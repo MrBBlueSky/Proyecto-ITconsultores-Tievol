@@ -1,0 +1,465 @@
+﻿
+@page "/Referencias/Sucursales"
+
+@inject SucursalesServices  srvSucursales
+@inject EstadosServices  srvEstados
+@inject ComunasServices srvComunas
+@inject PaisesServices srvPaises
+@inject EmpresasServices srvEmpresas
+@inject CiudadesServices srvCiudades
+@inject RegionesServices srvRegiones
+
+
+<TelerikGrid Data=@LstSucursales EditMode="@GridEditMode.Popup" Height="100%"
+             Sortable=true Pageable=true PageSize=10
+             SelectionMode="GridSelectionMode.Single">
+    <GridToolBar>
+        <GridCommandButton OnClick="@( () => OnClick("Add", null) )" Icon="add">Agregar</GridCommandButton>
+    </GridToolBar>
+    <GridColumns>
+        <GridCommandColumn Width="150px">
+            <GridCommandButton OnClick="@((args) => OnClick("Upd", args.Item as Sucursal))" Icon="edit" />
+            <GridCommandButton Command="Delete" Icon="delete" OnClick="@((args) => OnClick("Del", args.Item as Sucursal))" />
+
+        </GridCommandColumn>
+        @*<GridColumn Field=@nameof(Sucursal.ID_Sucursal) Title="ID Sucursal" Width="50px" />*@
+        <GridColumn Field=@nameof(Sucursal.N_Sucursal) Title="Nombre" Width="150px" />
+        <GridColumn Field=@nameof(Sucursal.Direccion) Title="Dirección" Width="150px" />
+        <GridColumn Field=@nameof(Sucursal.Direccion_Correo) Title="Correo Electronico" Width="150px"></GridColumn>
+        <GridColumn Field=@nameof(Sucursal.Telefono1) Title="Telefono 1 " Width="100px" />
+        <GridColumn Field=@nameof(Sucursal.Telefono2) Title="Telefono 2" Width="100px" />
+        <GridColumn Field=@nameof(Sucursal.Movil1) Title="Movil1" Width="100px" />
+        <GridColumn Field=@nameof(Sucursal.Movil2) Title="Movil2" Width="100px" />
+
+
+        <GridColumn Field=@nameof(Sucursal.Empresa) Title="Empresa" Width="100px">
+            <Template>
+                @((context as Sucursal).Empresa.N_Empresa)
+            </Template>
+        </GridColumn>
+
+        @*<GridColumn Field=@nameof(Sucursal.Pais) Title="Pais" Width="100px">
+            <Template>
+                @((context as Sucursal).Pais.N_Pais)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Sucursal.Region) Title="Región">
+            <Template>
+                @((context as Sucursal).Region.N_Region)
+            </Template>
+        </GridColumn>
+
+
+        <GridColumn Field=@nameof(Sucursal.Comuna) Title="Comuna">
+            <Template>
+                @((context as Sucursal).Comuna.N_Comuna)
+            </Template>
+        </GridColumn>*@
+
+
+
+        <GridColumn Field=@nameof(Sucursal.Ciudad) Title="Ciudad" Width="100px">
+            <Template>
+                @((context as Sucursal).Ciudad.N_Ciudad)
+            </Template>
+        </GridColumn>
+
+        <GridColumn Field=@nameof(Sucursal.Estado) Title="Estado" Width="100px">
+            <Template>
+                @((context as Sucursal).Estado.N_Estado)
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</TelerikGrid>
+
+<TelerikWindow Visible="ShowWindow" Modal="true" Class="c-Window">
+    <WindowContent>
+        <EditForm Model="SelectedSucursal" OnValidSubmit="@OnSave">
+            @*Modal Sucursales*@
+            <div class="card" style="width: 500px; height: 700px;">
+                <div class="card-header blue-gradient-rgba text-black">
+                    <h5 class="card-title my-2"><strong>@TituloWindow</strong></h5>
+                </div>
+
+                <div class="card-body text-muted">
+                    <DataAnnotationsValidator />
+                   
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Nombre*@
+                            <label class="k-label">Nombre</label>
+                            <TelerikTextBox @bind-Value="SelectedSucursal.N_Sucursal" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedSucursal.N_Sucursal)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Direccion*@
+                            <label class="k-label">Dirección</label>
+                            <TelerikTextBox @bind-Value="SelectedSucursal.Direccion" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedSucursal.Direccion)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Telefono 1*@
+                            <label class="k-label">Telefono 1</label>
+                            <TelerikTextBox @bind-Value="SelectedSucursal.Telefono1" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedSucursal.Telefono1)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Telefono 2*@
+                            <label class="k-label"> Telefono 2</label>
+                            <TelerikTextBox @bind-Value="SelectedSucursal.Telefono2" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedSucursal.Telefono2)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Movil1*@
+                            <label class="k-label">Movil 1</label>
+                            <TelerikTextBox @bind-Value="SelectedSucursal.Movil1" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedSucursal.Movil1)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Movil 2*@
+                            <label class="k-label">Movil 2</label>
+                            <TelerikTextBox @bind-Value="SelectedSucursal.Movil2" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedSucursal.Movil2)" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Correo Electronico*@
+                            <label class="k-label">Correo Electronico</label>
+                            <TelerikTextBox @bind-Value="SelectedSucursal.Direccion_Correo" Width="100%" />
+                            <ValidationMessage For="@(() => SelectedSucursal.Direccion_Correo)" />
+                        </div>
+                    </div>
+
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*ID_Empresa*@
+                            <label class="k-label">Empresa</label>
+                            <TelerikComboBox Data="@LstEmpresas" @bind-Value="SelectedSucursal.Empresa.ID_Empresa" Width="100%"
+                                             TextField="N_Empresa" ValueField="ID_Empresa"
+                                             Placeholder="Seleccione una Empresa..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*ID_Estado*@
+                            <label class="k-label">Estado</label>
+                            <TelerikComboBox Data="@LstEstados" @bind-Value="SelectedSucursal.Estado.ID_Estado" Width="100%"
+                                             TextField="N_Estado" ValueField="ID_Estado"
+                                             Placeholder="Seleccione un Estado..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Region*@
+                            <label class="k-label">Region</label>
+                            <TelerikComboBox Data="@LstRegiones" @bind-Value="SelectedSucursal.Region.ID_Region" Width="100%"
+                                             TextField="N_Region" ValueField="ID_Region"
+                                             Placeholder="Seleccione una Región.." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Comuna*@
+                            <label class="k-label">Comuna</label>
+                            <TelerikComboBox Data="@LstComunas" @bind-Value="SelectedSucursal.Comuna.ID_Comuna" Width="100%"
+                                             TextField="N_Comuna" ValueField="ID_Comuna"
+                                             Placeholder="Seleccione una comuna..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Ciudad*@
+                            <label class="k-label">Ciudad</label>
+                            <TelerikComboBox Data="@LstCiudades" @bind-Value="SelectedSucursal.Ciudad.ID_Ciudad" Width="100%"
+                                             TextField="N_Ciudad" ValueField="ID_Ciudad"
+                                             Placeholder="Seleccione una Ciudad..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            @*Paises*@
+                            <label class="k-label">Pais</label>
+                            <TelerikComboBox Data="@LstPaises" @bind-Value="SelectedSucursal.Pais.ID_Pais" Width="100%"
+                                             TextField="N_Pais" ValueField="ID_Pais"
+                                             Placeholder="Seleccione un Pais..." ClearButton="true" Filterable="true">
+                            </TelerikComboBox>
+                        </div>
+                    </div>
+
+                </div>
+                @*</div>
+            <div class="form-row">
+                <ValidationSummary />
+            </div>*@
+
+
+                <div class="card-footer">
+                    <div class="form-row d-flex d-flex justify-content-between">
+                        <TelerikButton Icon="@IconButton"
+                                       Class="btn btn-outline-info btn-telerik"
+                                       ButtonType="@ButtonType.Submit">
+                            <strong>@TituloButton</strong>
+                        </TelerikButton>
+
+                        <TelerikButton Icon="cancel" OnClick="@OnCancel"
+                                       Class="btn btn-outline-danger btn-telerik"
+                                       ButtonType="@ButtonType.Button">Cancelar</TelerikButton>
+                    </div>
+                </div>
+            </div>
+            @*End Modal Sucursales*@
+        </EditForm>
+    </WindowContent>
+</TelerikWindow>
+
+<TelerikNotification @ref="@Notification"></TelerikNotification>
+
+@code { 
+    public List<Sucursal> LstSucursales { get; set; }
+    public List<Estado> LstEstados { get; set; }
+    public List<Empresa> LstEmpresas { get; set; }
+    public List<Comuna> LstComunas { get; set; }
+    public List<Ciudad> LstCiudades { get; set; }
+    public List<Pais> LstPaises { get; set; }
+    public List<Region> LstRegiones { get; set; }
+    public string Accion { get; set; }
+    public Sucursal SelectedSucursal { get; set; }
+    public string TituloWindow { get; set; }
+    public string TituloButton { get; set; }
+    public string IconButton { get; set; }
+    public TelerikNotification Notification { get; set; }
+    public bool ShowWindow { get; set; } = false;
+
+
+    private Telerik.Blazor.Components.TelerikNumericTextBox<int> IDInt;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        LstSucursales = await srvSucursales.GetSucursales();
+        LstEstados = await srvEstados.GetEstados();
+        LstRegiones = await srvRegiones.GetRegiones();
+        LstCiudades = await srvCiudades.GetCiudades();
+        LstComunas = await srvComunas.GetComunas();
+        LstEmpresas = await srvEmpresas.GetEmpresas();
+        LstPaises = await srvPaises.GetPaises();
+    }
+
+    private void OnCancel(MouseEventArgs e)
+    {
+        ShowWindow = false;
+
+        StateHasChanged();
+    }
+
+    private void OnClick(string cAccion, Sucursal sucursal)
+    {
+        ShowWindow = true;
+        Accion = cAccion;
+        SelectedSucursal = sucursal;
+
+        if (cAccion == "Add")
+        {
+            SelectedSucursal = new Sucursal()
+            {
+                ID_Sucursal = 0,
+                N_Sucursal = string.Empty,
+                Direccion = string.Empty,
+                Telefono1 = string.Empty,
+                Telefono2 = string.Empty,
+                Movil1 = string.Empty,
+                Movil2 = string.Empty,
+                Direccion_Correo = string.Empty,
+
+                Estado = new Estado()
+                {
+                    ID_Estado = 0,
+                    N_Estado = string.Empty
+                },
+
+                Region = new Region()
+                {
+                    ID_Region = 0,
+                    N_Region = string.Empty
+                },
+
+                Comuna = new Comuna()
+                {
+                    ID_Comuna = 0,
+                    N_Comuna = string.Empty
+                },
+
+                Ciudad = new Ciudad()
+                {
+                    ID_Ciudad = 0,
+                    N_Ciudad = string.Empty
+                },
+
+                Pais = new Pais()
+                {
+                    ID_Pais = 0,
+                    N_Pais = string.Empty
+                },
+
+                Empresa = new Empresa()
+                {
+                    ID_Empresa = 0,
+                    N_Empresa = string.Empty,
+                    Rut = string.Empty,
+                    Direccion = string.Empty,
+                    Razon_Social = string.Empty,
+                    Giro = string.Empty,
+                    Telefono1 = string.Empty,
+                    Telefono2 = string.Empty,
+                    Movil = string.Empty,
+                    Direccion_Correo = string.Empty,
+                    Web = string.Empty,
+                    Observaciones = string.Empty,
+                    Fecha_Antiguedad = DateTime.Now
+                }
+
+            };
+
+            TituloWindow = "Agregar Sucursal";
+            TituloButton = "Agregar";
+            IconButton = "add";
+        }
+        else
+        {
+            SelectedSucursal = sucursal;
+
+
+            if (Accion == "Upd")
+            {
+                TituloWindow = "Actualizar Sucursal";
+                TituloButton = "Guardar";
+                IconButton = "save";
+
+            }
+            else
+            {
+                TituloWindow = "Eliminar Sucursal";
+                TituloButton = "Eliminar";
+                IconButton = "delete";
+
+            }
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task OnSave()
+    {
+        ShowWindow = false;
+        if (Accion == "Add")
+        {
+            if (LstSucursales.Exists(s => s.N_Sucursal == SelectedSucursal.N_Sucursal))
+            {
+               
+                return;
+            }
+
+            var response = await srvSucursales.CreateAsync(SelectedSucursal);
+            if (response.IsSuccess)
+            {
+                LstSucursales.Add(response.Result);
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Agregó la Sucursal correctamente...",
+                    ThemeColor = "success",
+                    ShowIcon = true
+                });
+                
+            }
+            else
+            {
+                
+            }
+        }
+
+        if (Accion == "Upd")
+        {
+
+            var response = await srvSucursales.UpdateAsync(SelectedSucursal);
+            if (response.IsSuccess)
+            {
+                LstSucursales.Add(response.Result);
+                var posicion = LstSucursales.FindIndex(s => s.ID_Sucursal == SelectedSucursal.ID_Sucursal);
+                if (posicion == -1)
+                {
+                  
+                }
+                else
+                {
+                    LstSucursales[posicion] = SelectedSucursal;
+                    Notification.Show(new NotificationModel()
+                    {
+                        Text = "Se Actualizó correctamente la Sucursal",
+                        ThemeColor = "info",
+                        ShowIcon = true
+                    });
+                 
+                }
+            }
+            else
+            {
+             
+            }
+        }
+
+        if (Accion == "Del")
+        {
+            var response = await srvSucursales.DeleteAsync(SelectedSucursal);
+            if (response.IsSuccess)
+            {
+                LstSucursales = await srvSucursales.GetSucursales();
+                Notification.Show(new NotificationModel()
+                {
+                    Text = "Se Eliminó correctamente la Sucursal",
+                    ThemeColor = "error",
+                    ShowIcon = true
+                });
+               
+            }
+            else
+            {
+                
+            }
+        }
+
+
+        LstSucursales = await srvSucursales.GetSucursales();
+
+
+        StateHasChanged();
+    } }
